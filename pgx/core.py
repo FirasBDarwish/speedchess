@@ -337,90 +337,10 @@ def make(env_id: EnvId):  # noqa: C901
     """
     # NOTE: BridgeBidding environment requires the domain knowledge of bridge
     # So we forbid users to load the bridge environment by `make("bridge_bidding")`.
-    if env_id == "2048":
-        from pgx.play2048 import Play2048
-
-        return Play2048()
-    elif env_id == "animal_shogi":
-        from pgx.animal_shogi import AnimalShogi
-
-        return AnimalShogi()
-    elif env_id == "backgammon":
-        from pgx.backgammon import Backgammon
-
-        return Backgammon()
-    elif env_id == "chess":
+    if env_id == "chess":
         from pgx.chess import Chess
 
         return Chess()
-    elif env_id == "connect_four":
-        from pgx.connect_four import ConnectFour
-
-        return ConnectFour()
-    elif env_id == "gardner_chess":
-        from pgx.gardner_chess import GardnerChess
-
-        return GardnerChess()
-    elif env_id == "go_9x9":
-        from pgx.go import Go
-
-        return Go(size=9, komi=7.5)
-    elif env_id == "go_19x19":
-        from pgx.go import Go
-
-        return Go(size=19, komi=7.5)
-    elif env_id == "hex":
-        from pgx.hex import Hex
-
-        return Hex()
-    elif env_id == "kuhn_poker":
-        from pgx.kuhn_poker import KuhnPoker
-
-        return KuhnPoker()
-    elif env_id == "leduc_holdem":
-        from pgx.leduc_holdem import LeducHoldem
-
-        return LeducHoldem()
-    # elif env_id == "mahjong":
-    #     from pgx.mahjong import Mahjong
-
-    #     return Mahjong()
-    elif env_id == "minatar-asterix":
-        from pgx.minatar.asterix import MinAtarAsterix  # type: ignore
-
-        return MinAtarAsterix()
-    elif env_id == "minatar-breakout":
-        from pgx.minatar.breakout import MinAtarBreakout  # type: ignore
-
-        return MinAtarBreakout()
-    elif env_id == "minatar-freeway":
-        from pgx.minatar.freeway import MinAtarFreeway  # type: ignore
-
-        return MinAtarFreeway()
-    elif env_id == "minatar-seaquest":
-        from pgx.minatar.seaquest import MinAtarSeaquest  # type: ignore
-
-        return MinAtarSeaquest()
-    elif env_id == "minatar-space_invaders":
-        from pgx.minatar.space_invaders import MinAtarSpaceInvaders  # type: ignore
-
-        return MinAtarSpaceInvaders()
-    elif env_id == "othello":
-        from pgx.othello import Othello
-
-        return Othello()
-    elif env_id == "shogi":
-        from pgx.shogi import Shogi
-
-        return Shogi()
-    elif env_id == "sparrow_mahjong":
-        from pgx.sparrow_mahjong import SparrowMahjong
-
-        return SparrowMahjong()
-    elif env_id == "tic_tac_toe":
-        from pgx.tic_tac_toe import TicTacToe
-
-        return TicTacToe()
     else:
         envs = "\n".join(available_envs())
         raise ValueError(f"Wrong env_id '{env_id}' is passed. Available ids are: \n{envs}")
