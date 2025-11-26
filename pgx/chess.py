@@ -18,7 +18,7 @@ import jax
 import jax.numpy as jnp
 
 import pgx.core as core
-from pgx._src.games.chess import INIT_LEGAL_ACTION_MASK, Game, GameState, _flip
+from pgx._src.games.chess import INIT_LEGAL_ACTION_MASK, Game, GameState, _flip, DEFAULT_TIME
 from pgx._src.struct import dataclass
 from pgx._src.types import Array, PRNGKey
 
@@ -33,6 +33,7 @@ class State(core.State):
     observation: Array = jnp.zeros((8, 8, 119), dtype=jnp.float32)
     _step_count: Array = jnp.int32(0)
     _player_order: Array = jnp.int32([0, 1])  # [0, 1] or [1, 0]
+    time_left = Array = jnp.int32([DEFAULT_TIME, DEFAULT_TIME])
     _x: GameState = GameState()
 
     @property
@@ -74,16 +75,40 @@ class Chess(core.Env):
         )
         return state
 
-    def _step(self, state: core.State, action: Array, key) -> State:
+    def _step(self, state: core.State, action_with_time: Array, key) -> State:
         del key
         assert isinstance(state, State)
+
+        action, time_spent = action_with_time
+
+        # subtract time
+        idx = state.current_player
+        new_time = state.time_left.at[idx].set(state.time_left[idx] - time_spent)
+        time_over = new_time[idx] <= 0
+
+        # apply the move
         x = self.game.step(state._x, action)
+
+        # compute base termination and rewards from chess rules
+        base_termination = self.game.is_terminal(x)
+
+        # timeout overrides chess results
+        terminated = base_termination | time_over
+
+        # baserewarsd and timeout rewards (player who times out loses; opponent wins)
+        base_rewards = self.game.rewards(x)[state._player_order]
+        timeout_rewards = (jnp.float32([0.0,0.0]).at[idx].set(-1.0).at[1-idx].set(+1.0))
+        
+        # if time is over -> losing rewards
+        rewards = jax.lax.select(time_over, timeout_rewards, base_rewards)
+
         state = state.replace(  # type: ignore
             _x=x,
             legal_action_mask=x.legal_action_mask,
             terminated=self.game.is_terminal(x),
-            rewards=self.game.rewards(x)[state._player_order],
+            rewards=rewards,
             current_player=state._player_order[x.color],
+            time_left=new_time,
         )
         return state  # type: ignore
 

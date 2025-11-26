@@ -21,6 +21,7 @@ from jax import Array, lax
 
 EMPTY, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING = tuple(range(7))  # opponent: -1 * piece
 MAX_TERMINATION_STEPS = 512  # from AlphaZero paper
+DEFAULT_TIME = 300
 
 # prepare precomputed values here (e.g., available moves, map to label, etc.)
 

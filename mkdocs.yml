@@ -1,35 +1,16 @@
-site_name: Pgx Documentation
-site_description: Pgx Documentation
+site_name: speedchess Documentation
+site_description: speedchess Documentation
 site_author: Sotetsu KOYAMADA
 site_url: http://pgx.readthedocs.io/
-repo_name: sotetsuk/pgx
-repo_url: https://github.com/sotetsuk/pgx
+repo_name: firasbdarwish/speedchess
+repo_url: https://github.com/FirasBDarwish/speedchess
 copyright: Copyright &copy Pgx Authors
 nav:
   - API: 
     - Usage: api_usage.md
     - Reference: api.md
   - Available Games:
-    - 2048: play2048.md
-    - Animal Shogi: animal_shogi.md
-    - Backgammon: backgammon.md
-    - Bridge bidding: bridge_bidding.md
     - Chess: chess.md
-    - Connect four: connect_four.md
-    - Gardner chess: gardner_chess.md
-    - Go: go.md
-    - Hex: hex.md
-    - Kuhn poker: kuhn_poker.md
-    - Leduc hold’em: leduc_holdem.md
-    - MinAtar Asterix: minatar_asterix.md
-    - MinAtar Breakout: minatar_breakout.md
-    - MinAtar Freeway: minatar_freeway.md
-    - MinAtar Seaquest: minatar_seaquest.md
-    - MinAtar Space Invaders: minatar_space_invaders.md
-    - Othello: othello.md
-    - Shogi: shogi.md
-    - Sparrow mahjong: sparrow_mahjong.md
-    - Tic-tac-toe: tic_tac_toe.md
 theme:
   name: material
   language: en

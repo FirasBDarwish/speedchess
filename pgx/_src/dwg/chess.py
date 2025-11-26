@@ -158,4 +158,78 @@ def _make_chess_dwg(dwg, state: ChessState, config):
     board_g.add(pieces_g)
     board_g.translate(10, 0)
 
+    # Add Clock UI
+    def _draw_clock(_dwg, x, y, time_value, label):
+        """
+        Draw a rectangular clock with text.
+        """
+        group = dwg.g()
+
+        rect_w = GRID_SIZE * 3.0
+        rect_h = GRID_SIZE * 0.9
+
+        # background rectangle
+        group.add(
+            _dwg.rect(
+                insert=(x,y),
+                size=(rect_w, rect_h),
+                fill=color_set.background_color,
+                stroke=color_set.grid_color,
+                stroke_width="2px",
+                rx=6,
+                ry=6,
+            )
+        )
+
+        # clock text
+        group.add(
+            _dwg.text(
+                text=f"{label}: {int(time_value)}",
+                insert=(x + rect_w * 0.1, y + rect_h * 0.65),
+                font_size = "20px",
+                font_family="Serif",
+                fill=color_set.grid_color,
+            )
+        )
+
+        return group
+
+    # Clock positions (top and bottom), Board width = `8 x GRID_SIZE`
+    CLOCK_X = 10
+    CLOCK_TOP_Y = 8 * GRID_SIZE + 20
+    CLOCK_BOTTOM_Y = -GRID_SIZE * 1.2
+
+    # If black is at bottom (state._x.color == 1), UI flips board meaning time_left[0] is at top, time_left[1] at bottom
+    # If white is at bottom, reverse.
+    if state._x.color == 0:
+        # White at bottom, Black at top
+        top_player = 1
+        bottom_player = 0
+    else:
+        # Black at bottom, White at top (after flipping)
+        top_player = 0
+        bottom_player = 1
+    
+    # Draw top player's clock
+    board_g.add(
+        _draw_clock(
+            dwg,
+            CLOCK_X,
+            CLOCK_TOP_Y,
+            int(state.time_left[top_player].item()),
+            label="Black" if top_player == 1 else "White",
+        )
+    )
+
+    # Draw bottom player's clock
+    board_g.add(
+        _draw_clock(
+            dwg,
+            CLOCK_X,
+            CLOCK_BOTTOM_Y,
+            int(state.time_left[bottom_player].item()),
+            label="Black" if bottom_player == 1 else "White",
+        )
+    )
+
     return board_g
