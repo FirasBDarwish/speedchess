@@ -37,7 +37,7 @@ num_devices = len(devices)
 
 
 class Config(BaseModel):
-    env_id: pgx.EnvId = "go_9x9"
+    env_id: pgx.EnvId = "gardner_chess"
     seed: int = 0
     max_num_iters: int = 400
     # network params
