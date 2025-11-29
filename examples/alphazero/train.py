@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import datetime
 import os
 import pickle
@@ -37,7 +38,7 @@ num_devices = len(devices)
 
 
 class Config(BaseModel):
-    env_id: pgx.EnvId = "go_9x9"
+    env_id: pgx.EnvId = "gardner_chess"
     seed: int = 0
     max_num_iters: int = 400
     # network params
@@ -46,7 +47,7 @@ class Config(BaseModel):
     resnet_v2: bool = True
     # selfplay params
     selfplay_batch_size: int = 1024
-    num_simulations: int = 32
+    num_simulations: int = 32  # can be overridden via CLI: --num_simulations 64
     max_num_steps: int = 256
     # training params
     training_batch_size: int = 4096
@@ -58,7 +59,24 @@ class Config(BaseModel):
         extra = "forbid"
 
 
-conf_dict = OmegaConf.from_cli()
+# ----------------------------------------------------------------------
+# Config / CLI: allow overriding num_simulations via --num_simulations
+# while still using OmegaConf for other overrides (e.g. num_layers=, etc.)
+# ----------------------------------------------------------------------
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--num_simulations",
+    type=int,
+    default=None,
+    help="Number of MCTS simulations used in self-play.",
+)
+args, unknown = parser.parse_known_args()
+
+# Other config values (and optionally num_simulations=...) via OmegaConf
+conf_dict = OmegaConf.from_cli(unknown)
+if args.num_simulations is not None:
+    conf_dict["num_simulations"] = args.num_simulations
+
 config: Config = Config(**conf_dict)
 print(config)
 
@@ -90,7 +108,9 @@ def recurrent_fn(model, rng_key: jnp.ndarray, action: jnp.ndarray, state: pgx.St
     current_player = state.current_player
     state = jax.vmap(env.step)(state, action)
 
-    (logits, value), _ = forward.apply(model_params, model_state, state.observation, is_eval=True)
+    (logits, value), _ = forward.apply(
+        model_params, model_state, state.observation, is_eval=True
+    )
     # mask invalid actions
     logits = logits - jnp.max(logits, axis=-1, keepdims=True)
     logits = jnp.where(state.legal_action_mask, logits, jnp.finfo(logits.dtype).min)
@@ -115,14 +135,23 @@ class SelfplayOutput(NamedTuple):
     terminated: jnp.ndarray
     action_weights: jnp.ndarray
     discount: jnp.ndarray
+    step_count: jnp.ndarray  # (T, B) per device
 
 
 @jax.pmap
-def selfplay(model, rng_key: jnp.ndarray) -> SelfplayOutput:
+def selfplay(model, rng_key: jnp.ndarray):
+    """Run batched self-play (no clock).
+
+    Returns:
+      data: SelfplayOutput  (T, B, ...)
+      final_state: pgx.State (#envs on this device)
+    """
     model_params, model_state = model
     batch_size = config.selfplay_batch_size // num_devices
 
-    def step_fn(state, key) -> SelfplayOutput:
+    step_env = auto_reset(env.step, env.init)
+
+    def step_fn(state, key) -> tuple[pgx.State, SelfplayOutput]:
         key1, key2 = jax.random.split(key)
         observation = state.observation
 
@@ -143,7 +172,9 @@ def selfplay(model, rng_key: jnp.ndarray) -> SelfplayOutput:
         )
         actor = state.current_player
         keys = jax.random.split(key2, batch_size)
-        state = jax.vmap(auto_reset(env.step, env.init))(state, policy_output.action, keys)
+
+        state = jax.vmap(step_env)(state, policy_output.action, keys)
+
         discount = -1.0 * jnp.ones_like(value)
         discount = jnp.where(state.terminated, 0.0, discount)
         return state, SelfplayOutput(
@@ -152,6 +183,7 @@ def selfplay(model, rng_key: jnp.ndarray) -> SelfplayOutput:
             reward=state.rewards[jnp.arange(state.rewards.shape[0]), actor],
             terminated=state.terminated,
             discount=discount,
+            step_count=state._step_count,
         )
 
     # Run selfplay for max_num_steps by batch
@@ -159,9 +191,9 @@ def selfplay(model, rng_key: jnp.ndarray) -> SelfplayOutput:
     keys = jax.random.split(sub_key, batch_size)
     state = jax.vmap(env.init)(keys)
     key_seq = jax.random.split(rng_key, config.max_num_steps)
-    _, data = jax.lax.scan(step_fn, state, key_seq)
+    final_state, data = jax.lax.scan(step_fn, state, key_seq)
 
-    return data
+    return data, final_state
 
 
 class Sample(NamedTuple):
@@ -259,7 +291,16 @@ def evaluate(rng_key, my_model):
 
 
 if __name__ == "__main__":
-    wandb.init(project="pgx-az", config=config.model_dump())
+    # Timestamp (Asia/Tokyo, UTC+9) used for both W&B run name and checkpoints
+    now_dt = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
+    now = now_dt.strftime("%Y%m%d%H%M%S")
+
+    # W&B run name includes num_simulations
+    run_name = f"{config.env_id}_nsim{config.num_simulations}_{now}"
+    wandb.init(project="pgx-az", config=config.model_dump(), name=run_name)
+
+    print("JAX devices:", jax.local_devices())
+    print("num_devices:", num_devices)
 
     # Initialize model and opt_state
     dummy_state = jax.vmap(env.init)(jax.random.split(jax.random.PRNGKey(0), 2))
@@ -269,10 +310,12 @@ if __name__ == "__main__":
     # replicates to all devices
     model, opt_state = jax.device_put_replicated((model, opt_state), devices)
 
-    # Prepare checkpoint dir
-    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
-    now = now.strftime("%Y%m%d%H%M%S")
-    ckpt_dir = os.path.join("checkpoints", f"{config.env_id}_{now}")
+    # Prepare checkpoint dir (include num_simulations in folder name)
+    ckpt_dir = os.path.join(
+        "checkpoints",
+        f"nsim_{config.num_simulations}",
+        f"{config.env_id}_{now}",
+    )
     os.makedirs(ckpt_dir, exist_ok=True)
 
     # Initialize logging dict
@@ -290,15 +333,17 @@ if __name__ == "__main__":
             R = evaluate(keys, model)
             log.update(
                 {
-                    f"eval/vs_baseline/avg_R": R.mean().item(),
-                    f"eval/vs_baseline/win_rate": ((R == 1).sum() / R.size).item(),
-                    f"eval/vs_baseline/draw_rate": ((R == 0).sum() / R.size).item(),
-                    f"eval/vs_baseline/lose_rate": ((R == -1).sum() / R.size).item(),
+                    "eval/vs_baseline/avg_R": R.mean().item(),
+                    "eval/vs_baseline/win_rate": ((R == 1).sum() / R.size).item(),
+                    "eval/vs_baseline/draw_rate": ((R == 0).sum() / R.size).item(),
+                    "eval/vs_baseline/lose_rate": ((R == -1).sum() / R.size).item(),
                 }
             )
 
             # Store checkpoints
-            model_0, opt_state_0 = jax.tree_util.tree_map(lambda x: x[0], (model, opt_state))
+            model_0, opt_state_0 = jax.tree_util.tree_map(
+                lambda x: x[0], (model, opt_state)
+            )
             with open(os.path.join(ckpt_dir, f"{iteration:06d}.ckpt"), "wb") as f:
                 dic = {
                     "config": config,
@@ -324,16 +369,78 @@ if __name__ == "__main__":
         log = {"iteration": iteration}
         st = time.time()
 
+        # --------------------------------------------------------------
         # Selfplay
+        # --------------------------------------------------------------
         rng_key, subkey = jax.random.split(rng_key)
         keys = jax.random.split(subkey, num_devices)
-        data: SelfplayOutput = selfplay(model, keys)
+        data, final_state = selfplay(model, keys)
         samples: Sample = compute_loss_input(data)
 
+        # ----------------- termination diagnostics --------------------
+        data_host: SelfplayOutput = jax.device_get(data)
+        T = config.max_num_steps
+        last_t = T - 1
+
+        terminated = data_host.terminated[:, last_t, :]      # (D, B)
+        reward_last = data_host.reward[:, last_t, :]         # (D, B)
+        step_count_last = data_host.step_count[:, last_t, :] # (D, B)
+
+        term_flat = terminated.reshape(-1).astype(jnp.bool_)
+        reward_flat = reward_last.reshape(-1)
+        step_count_flat = step_count_last.reshape(-1)
+        total_envs = term_flat.shape[0]
+
+        term_rate = float(jnp.mean(term_flat.astype(jnp.float32)))
+        trunc_rate = 1.0 - term_rate
+
+        # No timeouts in non-speed env
+        timed_out_mask = jnp.zeros_like(term_flat, dtype=jnp.bool_)
+
+        env_max_mask = term_flat & (step_count_flat >= config.max_num_steps)
+
+        non_timeout_non_max = term_flat & ~timed_out_mask & ~env_max_mask
+        win_mask = non_timeout_non_max & (reward_flat > 0.0)
+        loss_mask = non_timeout_non_max & (reward_flat < 0.0)
+        draw_mask = non_timeout_non_max & jnp.isclose(reward_flat, 0.0)
+
+        def frac(mask):
+            return float(jnp.sum(mask.astype(jnp.float32)) / float(total_envs))
+
+        timeout_rate = frac(timed_out_mask)        # should be 0
+        env_max_rate = frac(env_max_mask)
+        board_win_rate = frac(win_mask)
+        board_loss_rate = frac(loss_mask)
+        board_draw_rate = frac(draw_mask)
+
+        # Average total step count (i.e. total moves per game)
+        avg_step_count = float(jnp.mean(final_state._step_count))
+
+        # Per-player and conditional step-count stats
+        num_players = final_state.rewards.shape[-1]
+        avg_move_count_per_player = avg_step_count / float(num_players)
+
+        term_float = term_flat.astype(jnp.float32)
+        non_term_float = 1.0 - term_float
+
+        # Average step count among terminated vs truncated games
+        avg_step_count_terminated = float(
+            jnp.sum(step_count_flat * term_float)
+            / jnp.maximum(jnp.sum(term_float), 1.0)
+        )
+        avg_step_count_truncated = float(
+            jnp.sum(step_count_flat * non_term_float)
+            / jnp.maximum(jnp.sum(non_term_float), 1.0)
+        )
+
+        # --------------------------------------------------------------
         # Shuffle samples and make minibatches
+        # --------------------------------------------------------------
         samples = jax.device_get(samples)  # (#devices, batch, max_num_steps, ...)
         frames += samples.obs.shape[0] * samples.obs.shape[1] * samples.obs.shape[2]
-        samples = jax.tree_util.tree_map(lambda x: x.reshape((-1, *x.shape[3:])), samples)
+        samples = jax.tree_util.tree_map(
+            lambda x: x.reshape((-1, *x.shape[3:])), samples
+        )
         rng_key, subkey = jax.random.split(rng_key)
         ixs = jax.random.permutation(subkey, jnp.arange(samples.obs.shape[0]))
         samples = jax.tree_util.tree_map(lambda x: x[ixs], samples)  # shuffle
@@ -342,7 +449,9 @@ if __name__ == "__main__":
             lambda x: x.reshape((num_updates, num_devices, -1) + x.shape[1:]), samples
         )
 
+        # --------------------------------------------------------------
         # Training
+        # --------------------------------------------------------------
         policy_losses, value_losses = [], []
         for i in range(num_updates):
             minibatch: Sample = jax.tree_util.tree_map(lambda x: x[i], minibatches)
@@ -360,5 +469,16 @@ if __name__ == "__main__":
                 "train/value_loss": value_loss,
                 "hours": hours,
                 "frames": frames,
+                "selfplay/avg_step_count": avg_step_count,
+                "selfplay/avg_move_count_per_player": avg_move_count_per_player,
+                "selfplay/avg_step_count_terminated": avg_step_count_terminated,
+                "selfplay/avg_step_count_truncated": avg_step_count_truncated,
+                "selfplay/termination_rate_last": term_rate,
+                "selfplay/truncation_rate_last": trunc_rate,
+                "selfplay/term_rate_timeout": timeout_rate,
+                "selfplay/term_rate_env_max_steps": env_max_rate,
+                "selfplay/term_rate_board_win": board_win_rate,
+                "selfplay/term_rate_board_loss": board_loss_rate,
+                "selfplay/term_rate_board_draw": board_draw_rate,
             }
         )
