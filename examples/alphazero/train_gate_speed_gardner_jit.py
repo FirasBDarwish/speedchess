@@ -1,8 +1,7 @@
 import os
 import pickle
 from dataclasses import dataclass
-from typing import Dict, Tuple, List, Any
-from tqdm import tqdm
+from typing import Dict, Any, List
 
 import haiku as hk
 import jax
@@ -15,8 +14,14 @@ from pydantic import BaseModel
 from tqdm import trange
 import wandb
 
-from speed_gardner_chess import GardnerChess, MAX_TERMINATION_STEPS
-from speed_gardner_chess import _step_board  # pure board step for MCTS
+from jax import debug as jdebug  # for optional jax.debug.print
+
+from speed_gardner_chess import (
+    GardnerChess,
+    MAX_TERMINATION_STEPS,
+    _step_board,   # pure board step for MCTS
+    _observe,      # board-only observation
+)
 from network import AZNet
 
 
@@ -154,6 +159,10 @@ def make_recurrent_fn_speed(forward):
         # pure board step, batched
         state = jax.vmap(_step_board)(state, action)
 
+        # update observation for side-to-move (board-only features)
+        obs = jax.vmap(_observe)(state, state.current_player)
+        state = state.replace(observation=obs)
+
         (logits, value), _ = forward.apply(
             model_params, model_state, state.observation, is_eval=True
         )
@@ -204,7 +213,7 @@ def make_select_actions_mcts(forward, recurrent_fn, num_simulations: int):
             gumbel_scale=1.0,
         )
         return policy_output.action  # (batch,)
-    return jax.jit(select_actions_mcts)
+    return select_actions_mcts
 
 
 # ================================================================
@@ -257,6 +266,7 @@ gate_forward = hk.without_apply_rng(hk.transform(gate_forward_fn))
 # 5. PPO loss, GAE helper
 # ================================================================
 
+@jax.tree_util.register_pytree_node_class
 @dataclass
 class PPOBatch:
     obs: jnp.ndarray         # (T, 5,5,115)
@@ -267,28 +277,62 @@ class PPOBatch:
     returns: jnp.ndarray     # (T,)
     advantages: jnp.ndarray  # (T,)
 
+    # Tell JAX how to treat this as a pytree
+    def tree_flatten(self):
+        children = (
+            self.obs,
+            self.time,
+            self.actions,
+            self.logp_old,
+            self.values_old,
+            self.returns,
+            self.advantages,
+        )
+        aux_data = None
+        return children, aux_data
 
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        obs, time, actions, logp_old, values_old, returns, advantages = children
+        return cls(
+            obs=obs,
+            time=time,
+            actions=actions,
+            logp_old=logp_old,
+            values_old=values_old,
+            returns=returns,
+            advantages=advantages,
+        )
+
+
+@jax.jit
 def compute_gae(rewards, values, dones, gamma, lam):
     """
     rewards, values, dones: (T,)
     Returns: returns, advantages
     """
-    T = rewards.shape[0]
-    returns = jnp.zeros_like(rewards)
-    advantages = jnp.zeros_like(rewards)
+    # Reverse for backward scan
+    rev_rewards = rewards[::-1]
+    rev_values = values[::-1]
+    rev_dones = dones[::-1]
 
-    next_value = 0.0
-    next_adv = 0.0
-
-    for t in reversed(range(T)):
-        mask = 1.0 - dones[t]
-        delta = rewards[t] + gamma * next_value * mask - values[t]
+    def body_fn(carry, inp):
+        next_value, next_adv = carry
+        r, v, d = inp
+        mask = 1.0 - d
+        delta = r + gamma * next_value * mask - v
         adv = delta + gamma * lam * mask * next_adv
-        advantages = advantages.at[t].set(adv)
-        next_adv = adv
-        next_value = values[t]
-        returns = returns.at[t].set(adv + values[t])
+        ret = adv + v
+        return (v, adv), (ret, adv)
 
+    (_, _), (rev_returns, rev_advantages) = jax.lax.scan(
+        body_fn,
+        (0.0, 0.0),
+        (rev_rewards, rev_values, rev_dones),
+    )
+
+    returns = rev_returns[::-1]
+    advantages = rev_advantages[::-1]
     return returns, advantages
 
 
@@ -341,165 +385,37 @@ def make_ppo_loss_fn():
 
 
 # ================================================================
-# 6. Rollout: self-play, GateNet controls both players + debug stats
+# 6. Helper: build PPOBatch + rollout stats from JAX traj
 # ================================================================
 
-def rollout_selfplay(
-    env: GardnerChess,
-    state,
-    gate_params,
-    rng_key,
-    select_mcts_8,
-    select_mcts_32,
-    model_8,
-    model_32,
-    default_time: float,
-    num_steps: int,
-):
+def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
     """
-    Self-play rollout:
-      - GateNet controls *both* players.
-      - At each non-terminal state:
-          * observation = state.observation (side-to-move)
-          * times = [my_time, opp_time] / default_time
-          * gate_action ∈ {0,1} selects nsim ∈ {8,32}
-          * base MCTS picks move, env.step((action, time_spent))
-          * reward r_t = final game result from the perspective
-            of the player who just moved (mostly 0; ±1 or 0 at terminal)
+    traj keys:
+      obs:    (T,5,5,115)
+      time:   (T,2)
+      action: (T,)
+      logp:   (T,)
+      value:  (T,)
+      reward: (T,)
+      done:   (T,)
+      player: (T,)
     """
-    obs_list: List[Any] = []
-    time_list: List[Any] = []
-    act_list: List[int] = []
-    logp_list: List[float] = []
-    val_list: List[float] = []
-    rew_list: List[float] = []
-    done_list: List[bool] = []
-    players_list: List[int] = []
+    obs_arr = traj["obs"]
+    time_arr = traj["time"]
+    actions_arr = traj["action"]
+    logp_arr = traj["logp"]
+    values_arr = traj["value"]
+    rewards_arr = traj["reward"]
+    dones_arr = traj["done"]
+    players_arr = traj["player"]
 
-    ep_returns: List[float] = []
-    ep_lens: List[int] = []
-
-    ep_ret = 0.0
-    ep_len = 0
-
-    T_collected = 0
-    rng = rng_key
-
-    # For logging sample game trajectories
-    ep_traces: List[dict] = []
-    current_ep_trace: List[dict] = []
-
-    def gate_step(params, obs, time_norm, rng):
-        # obs: (5,5,115), time_norm: (2,)
-        obs_b = obs[None, ...]
-        time_b = time_norm[None, ...]
-        logits, value = gate_forward.apply(params, obs_b, time_b)
-        logits = logits[0]
-        value = value[0]
-        log_probs = jax.nn.log_softmax(logits)
-        rng, sub = jax.random.split(rng)
-        action = int(jax.random.categorical(sub, logits))
-        logp = float(log_probs[action])
-        return action, float(value), logp, rng
-
-    with tqdm(total=num_steps, desc="Rollout", leave=False) as pbar:
-        while T_collected < num_steps:
-            if bool(state.terminated | state.truncated):
-                # episode ended; log and reset
-                ep_returns.append(ep_ret)
-                ep_lens.append(ep_len)
-                ep_ret = 0.0
-                ep_len = 0
-                current_ep_trace = []
-                rng, key_init = jax.random.split(rng)
-                state = env.init(key_init)
-                continue
-
-            # Side-to-move observation
-            obs = state.observation           # (5,5,115)
-            time_left = state.time_left       # (2,)
-            cur = int(state.current_player)
-            my_time = time_left[cur]
-            opp_time = time_left[1 - cur]
-            time_norm = jnp.array(
-                [my_time / default_time, opp_time / default_time],
-                dtype=jnp.float32,
-            )
-
-            # -------- Gate decision --------
-            gate_action, value, logp, rng = gate_step(
-                gate_params, obs, time_norm, rng
-            )
-
-            # Record transition (reward, done unknown yet)
-            obs_list.append(np.array(obs))
-            time_list.append(np.array(time_norm))
-            act_list.append(int(gate_action))
-            logp_list.append(float(logp))
-            val_list.append(float(value))
-            rew_list.append(0.0)      # will set to final result for this player at terminal
-            done_list.append(False)
-            players_list.append(cur)
-
-            # For trajectory debugging
-            current_ep_trace.append(
-                {
-                    "player": cur,
-                    "action": int(gate_action),
-                    "my_time": float(time_norm[0]),
-                    "opp_time": float(time_norm[1]),
-                }
-            )
-
-            ep_len += 1
-            pbar.update(1)
-            T_collected += 1
-
-            # -------- Execute move via chosen MCTS --------
-            rng, sub = jax.random.split(rng)
-            state_b = jax.tree_util.tree_map(lambda x: x[None, ...], state)
-
-            if gate_action == 0:
-                a = select_mcts_8(model_8, state_b, sub)[0]
-                time_spent = jnp.int32(COST_8)
-            else:
-                a = select_mcts_32(model_32, state_b, sub)[0]
-                time_spent = jnp.int32(COST_32)
-
-            prev_player = cur
-            state = env.step(state, (a, time_spent))
-
-            # Reward is from the perspective of prev_player (the one that decided)
-            if bool(state.terminated | state.truncated):
-                r = float(state.rewards[prev_player])
-                rew_list[-1] = r
-                done_list[-1] = True
-                ep_ret += r
-
-                # Save this episode trace
-                final_rewards = np.array(state.rewards)
-                ep_traces.append(
-                    {
-                        "steps": current_ep_trace,
-                        "result_p0": float(final_rewards[0]),
-                        "result_p1": float(final_rewards[1]),
-                    }
-                )
-                current_ep_trace = []
-
-    # ----------------------------
-    # Build PPOBatch
-    # ----------------------------
-    obs_arr = jnp.array(obs_list, dtype=jnp.float32)            # (T,5,5,115)
-    time_arr = jnp.array(time_list, dtype=jnp.float32)          # (T,2)
-    actions_arr = jnp.array(act_list, dtype=jnp.int32)          # (T,)
-    logp_arr = jnp.array(logp_list, dtype=jnp.float32)          # (T,)
-    values_arr = jnp.array(val_list, dtype=jnp.float32)         # (T,)
-    rewards_arr = jnp.array(rew_list, dtype=jnp.float32)        # (T,)
-    dones_arr = jnp.array(done_list, dtype=jnp.float32)         # (T,)
-
+    # Compute returns and advantages (still on device)
     returns, advantages = compute_gae(
-        rewards_arr, values_arr, dones_arr, GAMMA, LAMBDA
+        rewards_arr,
+        values_arr,
+        dones_arr.astype(jnp.float32),
+        GAMMA,
+        LAMBDA,
     )
 
     batch = PPOBatch(
@@ -512,32 +428,48 @@ def rollout_selfplay(
         advantages=advantages,
     )
 
-    # ----------------------------
-    # Aggregate rollout stats
-    # ----------------------------
-    ep_returns_np = np.array(ep_returns) if ep_returns else np.array([0.0])
-    ep_lens_np = np.array(ep_lens) if ep_lens else np.array([0])
+    # ---------- Stats on host ----------
+    actions_np = np.array(actions_arr, dtype=np.int32)
+    players_np = np.array(players_arr, dtype=np.int32)
+    dones_np = np.array(dones_arr > 0.5, dtype=bool)
+    rewards_np = np.array(rewards_arr, dtype=np.float32)
+    adv_np = np.array(advantages, dtype=np.float32)
+    ret_np = np.array(returns, dtype=np.float32)
+    time_np = np.array(time_arr, dtype=np.float32)
+
+    T = actions_np.shape[0]
+
+    # Episode boundaries: indices where done=True
+    done_idx = np.where(dones_np)[0]
+    if len(done_idx) == 0:
+        ep_lens = np.array([T], dtype=np.int32)
+        ep_returns = np.array([rewards_np.sum()], dtype=np.float32)
+    else:
+        ep_lens = np.diff(np.concatenate([[-1], done_idx])).astype(np.int32)
+        ep_returns_list: List[float] = []
+        start = 0
+        for idx in done_idx:
+            ep_returns_list.append(float(rewards_np[start:idx + 1].sum()))
+            start = idx + 1
+        ep_returns = np.array(ep_returns_list, dtype=np.float32)
 
     stats: Dict[str, float] = {
-        "mean_ep_return": float(ep_returns_np.mean()),
-        "mean_ep_len": float(ep_lens_np.mean()),
+        "mean_ep_return": float(ep_returns.mean()),
+        "mean_ep_len": float(ep_lens.mean()),
     }
 
     # Action usage stats
-    actions_np = np.array(act_list, dtype=np.int32)
-    players_np = np.array(players_list, dtype=np.int32)
     total_steps = max(1, len(actions_np))
-
     rate_8 = float((actions_np == 0).sum() / total_steps)
     rate_32 = float((actions_np == 1).sum() / total_steps)
 
     mask0 = players_np == 0
     mask1 = players_np == 1
-    total_p0 = max(1, mask0.sum())
-    total_p1 = max(1, mask1.sum())
+    total_p0 = max(1, int(mask0.sum()))
+    total_p1 = max(1, int(mask1.sum()))
 
-    rate_8_p0 = float(((actions_np[mask0] == 0).sum() / total_p0)) if mask0.sum() > 0 else 0.0
-    rate_8_p1 = float(((actions_np[mask1] == 0).sum() / total_p1)) if mask1.sum() > 0 else 0.0
+    rate_8_p0 = float((actions_np[mask0] == 0).sum() / total_p0) if total_p0 > 0 else 0.0
+    rate_8_p1 = float((actions_np[mask1] == 0).sum() / total_p1) if total_p1 > 0 else 0.0
 
     stats.update(
         {
@@ -549,15 +481,10 @@ def rollout_selfplay(
     )
 
     # Move counts
-    if len(ep_lens_np) > 0:
-        avg_moves_per_game = float(ep_lens_np.mean())
-    else:
-        avg_moves_per_game = 0.0
-
-    moves_p0 = mask0.sum()
-    moves_p1 = mask1.sum()
-    num_games = max(1, len(ep_lens_np))
-
+    num_games = max(1, len(ep_lens))
+    moves_p0 = int(mask0.sum())
+    moves_p1 = int(mask1.sum())
+    avg_moves_per_game = float(ep_lens.mean())
     stats.update(
         {
             "avg_moves_per_game": avg_moves_per_game,
@@ -567,8 +494,6 @@ def rollout_selfplay(
     )
 
     # Advantage / return stats
-    adv_np = np.array(advantages)
-    ret_np = np.array(returns)
     stats.update(
         {
             "advantages_mean": float(adv_np.mean()),
@@ -578,11 +503,191 @@ def rollout_selfplay(
         }
     )
 
-    return state, rng, batch, stats, ep_traces
+    # ---------- Reconstruct some episode traces for debug ----------
+    ep_traces: List[dict] = []
+    if len(done_idx) > 0:
+        start = 0
+        for idx in done_idx:
+            steps: List[dict] = []
+            for t in range(start, idx + 1):
+                steps.append(
+                    {
+                        "player": int(players_np[t]),
+                        "action": int(actions_np[t]),
+                        "my_time": float(time_np[t, 0]),
+                        "opp_time": float(time_np[t, 1]),
+                    }
+                )
+            r = float(rewards_np[idx])
+            mover = int(players_np[idx])
+            if r > 0:
+                if mover == 0:
+                    result_p0 = r
+                    result_p1 = -r
+                else:
+                    result_p1 = r
+                    result_p0 = -r
+            elif r < 0:
+                if mover == 0:
+                    result_p0 = r
+                    result_p1 = -r
+                else:
+                    result_p1 = r
+                    result_p0 = -r
+            else:
+                result_p0 = 0.0
+                result_p1 = 0.0
+
+            ep_traces.append(
+                {
+                    "steps": steps,
+                    "result_p0": float(result_p0),
+                    "result_p1": float(result_p1),
+                }
+            )
+            start = idx + 1
+
+    return batch, stats, ep_traces
 
 
 # ================================================================
-# 7. Main training loop (self-play PPO) + wandb + tqdm
+# 7. Jitted rollout (scan over time)
+# ================================================================
+
+def make_rollout_core(
+    env_speed: GardnerChess,
+    select_mcts_8,
+    select_mcts_32,
+    model_8,
+    model_32,
+    default_time: float,
+):
+    default_time_f32 = jnp.float32(default_time)
+
+    def rollout_core(state, gate_params, rng_key, num_steps: int):
+        """
+        Jitted self-play rollout using jax.lax.scan.
+        """
+
+        def one_step(carry, _):
+            state, rng = carry
+
+            # Reset episode if previous state was terminal/truncated
+            rng, key_reset, key_gate, key_mcts = jax.random.split(rng, 4)
+            done_prev = state.terminated | state.truncated
+
+            def reset_fn(carry_inner):
+                _state, k = carry_inner
+                return env_speed.init(k)
+
+            def keep_fn(carry_inner):
+                s, _ = carry_inner
+                return s
+
+            state = jax.lax.cond(
+                done_prev,
+                reset_fn,
+                keep_fn,
+                operand=(state, key_reset),
+            )
+
+            # Side-to-move observation
+            obs = state.observation               # (5,5,115)
+            time_left = state.time_left           # (2,)
+            cur = state.current_player            # scalar 0/1
+
+            my_time = time_left[cur]
+            opp_time = time_left[1 - cur]
+            time_norm = jnp.array(
+                [my_time / default_time_f32, opp_time / default_time_f32],
+                dtype=jnp.float32,
+            )                                     # (2,)
+
+            # -------- Gate decision --------
+            obs_b = obs[None, ...]
+            time_b = time_norm[None, ...]
+            logits, value = gate_forward.apply(gate_params, obs_b, time_b)
+            logits = logits[0]                    # (2,)
+            value = value[0]                      # scalar
+
+            log_probs = jax.nn.log_softmax(logits)
+            gate_action = jax.random.categorical(key_gate, logits)  # 0 or 1
+            logp = log_probs[gate_action]
+
+            # Example debug print (uncomment if needed; will be spammy):
+            # jdebug.print(
+            #     "gate_action={g}, cur={p}, my_time={mt}, opp_time={ot}",
+            #     g=gate_action, p=cur, mt=time_norm[0], ot=time_norm[1]
+            # )
+
+            # -------- Execute move via chosen MCTS --------
+            state_b = jax.tree_util.tree_map(lambda x: x[None, ...], state)
+
+            def run_mcts_8(_):
+                a = select_mcts_8(model_8, state_b, key_mcts)[0]
+                return a, jnp.int32(COST_8)
+
+            def run_mcts_32(_):
+                a = select_mcts_32(model_32, state_b, key_mcts)[0]
+                return a, jnp.int32(COST_32)
+
+            action, time_spent = jax.lax.cond(
+                gate_action == 0,
+                run_mcts_8,
+                run_mcts_32,
+                operand=None,
+            )
+
+            prev_player = cur
+            state_next = env_speed.step(state, (action, time_spent))
+
+            # Reward from POV of the player who just moved; 0 if non-terminal
+            done = state_next.terminated | state_next.truncated
+            move_reward = state_next.rewards[prev_player]
+            reward = jax.lax.select(done, move_reward, jnp.float32(0.0))
+
+            carry_next = (state_next, rng)
+            out = {
+                "obs": obs,
+                "time": time_norm,
+                "action": gate_action,
+                "logp": logp,
+                "value": value,
+                "reward": reward,
+                "done": done,
+                "player": prev_player,
+            }
+            return carry_next, out
+
+        (state_final, rng_final), traj = jax.lax.scan(
+            one_step, (state, rng_key), xs=None, length=num_steps
+        )
+        return state_final, rng_final, traj
+
+    rollout_core_jit = jax.jit(rollout_core, static_argnums=(3,))
+    return rollout_core_jit
+
+
+def rollout_selfplay(
+    rollout_core_jit,
+    state,
+    gate_params,
+    rng_key,
+    num_steps: int,
+):
+    """
+    Wrapper: calls jitted rollout_core, then builds PPOBatch + stats + episode traces.
+    """
+    state_final, rng_final, traj = rollout_core_jit(
+        state, gate_params, rng_key, num_steps
+    )
+
+    batch, stats, ep_traces = build_batch_and_stats(traj)
+    return state_final, rng_final, batch, stats, ep_traces
+
+
+# ================================================================
+# 8. Main training loop (self-play PPO) + wandb + tqdm
 # ================================================================
 
 def main():
@@ -591,7 +696,7 @@ def main():
     # ----------------------
     ckpt_paths = discover_checkpoints(CKPT_ROOT, BASE_ENV_ID, ITER_FILE)
     print("found checkpoints: ", ckpt_paths)
-    # Must have nsim_8 and nsim_32
+
     needed = [f"nsim_{n}" for n in BASE_NSIMS]
     for k in needed:
         if k not in ckpt_paths:
@@ -600,6 +705,7 @@ def main():
     env_id_8, cfg_8, model_8 = load_checkpoint(ckpt_paths["nsim_8"])
     env_id_32, cfg_32, model_32 = load_checkpoint(ckpt_paths["nsim_32"])
     print("loaded checkpoints: ", env_id_8, env_id_32)
+
     if env_id_8 != BASE_ENV_ID or env_id_32 != BASE_ENV_ID:
         raise RuntimeError("Base model env_ids mismatch")
 
@@ -654,6 +760,18 @@ def main():
         return params, opt_state, metrics
 
     # ----------------------
+    # Jitted rollout core
+    # ----------------------
+    rollout_core_jit = make_rollout_core(
+        env_speed,
+        select_mcts_8,
+        select_mcts_32,
+        model_8,
+        model_32,
+        default_time,
+    )
+
+    # ----------------------
     # wandb init
     # ----------------------
     wandb.init(
@@ -680,32 +798,28 @@ def main():
         name="gate_speed_gardner_selfplay",
     )
     print("initialized wandb and checkpoint loading")
+
     # ----------------------
     # Training loop
     # ----------------------
     for update in trange(1, NUM_UPDATES + 1, desc="PPO updates"):
-        # Collect rollout
+        # Collect rollout (jitted)
         state, rng, batch, roll_stats, ep_traces = rollout_selfplay(
-            env_speed,
+            rollout_core_jit,
             state,
             gate_params,
             rng,
-            select_mcts_8,
-            select_mcts_32,
-            model_8,
-            model_32,
-            default_time,
             ROLLOUT_STEPS,
         )
-        print("collected rollout")
+
         # Shuffle batch and do minibatch PPO
         T = batch.obs.shape[0]
         idxs = np.arange(T)
         np.random.shuffle(idxs)
-        print("shuffled batch")
+
         metrics_accum = None
         mb_count = 0
-        print("initialized metrics accumulator")
+
         for epoch in range(PPO_EPOCHS):
             for start in range(0, T, BATCH_SIZE):
                 end = start + BATCH_SIZE
@@ -731,7 +845,7 @@ def main():
                     for k, v in metrics.items():
                         metrics_accum[k] += float(v)
                 mb_count += 1
-        print("updated metrics")
+
         if metrics_accum is not None and mb_count > 0:
             metrics_avg = {k: v / mb_count for k, v in metrics_accum.items()}
         else:
@@ -742,7 +856,7 @@ def main():
                 "entropy": 0.0,
                 "approx_kl": 0.0,
             }
-        print("built metrics avg")
+
         # Build wandb log dict
         log_dict = {
             "train/loss": metrics_avg["loss"],
@@ -764,7 +878,7 @@ def main():
             "rollout/returns_mean": roll_stats["returns_mean"],
             "rollout/returns_std": roll_stats["returns_std"],
         }
-        print("built log dict")
+
         # Sample game trajectory (text) occasionally
         if (update % TRAJ_LOG_INTERVAL == 0) and len(ep_traces) > 0:
             sample_ep = ep_traces[0]  # could random.choice if you prefer
@@ -781,7 +895,7 @@ def main():
                 )
             traj_text = "\n".join(lines)
             log_dict["debug/sample_game"] = traj_text
-        print("sampled game trajectory")    
+
         wandb.log(log_dict, step=update)
 
         if update % 10 == 0:
@@ -797,7 +911,7 @@ def main():
                 f"rate_8={roll_stats['action_rate_8']:.3f}  "
                 f"rate_32={roll_stats['action_rate_32']:.3f}"
             )
-        print("logged metrics")
+
 
 if __name__ == "__main__":
     main()

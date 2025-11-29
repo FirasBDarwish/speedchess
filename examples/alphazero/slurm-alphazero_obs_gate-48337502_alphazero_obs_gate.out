@@ -1,0 +1,3 @@
+found checkpoints:  {'nsim_16': '/n/home04/amuppidi/speedchess/examples/alphazero/checkpoints/nsim_16/gardner_chess_20251128041649/000400.ckpt', 'nsim_32': '/n/home04/amuppidi/speedchess/examples/alphazero/checkpoints/nsim_32/gardner_chess_20251128041648/000400.ckpt', 'nsim_4': '/n/home04/amuppidi/speedchess/examples/alphazero/checkpoints/nsim_4/gardner_chess_20251128041742/000400.ckpt', 'nsim_2': '/n/home04/amuppidi/speedchess/examples/alphazero/checkpoints/nsim_2/gardner_chess_20251128043614/000400.ckpt', 'nsim_8': '/n/home04/amuppidi/speedchess/examples/alphazero/checkpoints/nsim_8/gardner_chess_20251128041703/000400.ckpt'}
+loaded checkpoints:  gardner_chess gardner_chess
+initialized wandb and checkpoint loading
