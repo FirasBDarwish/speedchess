@@ -1,0 +1,18 @@
+>>> Environment Info:
+     active environment : speedchess
+/home/fbd2014/.conda/envs/speedchess/bin/python
+====================================================
+ Running AlphaZero training with num_simulations = 2
+====================================================
+====================================================
+ Running AlphaZero training with num_simulations = 4
+====================================================
+====================================================
+ Running AlphaZero training with num_simulations = 8
+====================================================
+====================================================
+ Running AlphaZero training with num_simulations = 16
+====================================================
+====================================================
+ Running AlphaZero training with num_simulations = 32
+====================================================

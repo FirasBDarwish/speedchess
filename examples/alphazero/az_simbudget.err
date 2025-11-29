@@ -1,0 +1,132 @@
+/var/spool/slurmd/job13358796/slurm_script: line 41: nvcc: command not found
+W1129 17:15:31.249601 3849904 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:31.251857 3849903 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:31.256627 3849901 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:31.257414 3849902 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:31.291402 3849854 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:31.312590 3849854 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:31.333506 3849854 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:31.356129 3849854 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:34.714342 3849961 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:34.724715 3849962 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:34.725380 3849960 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:34.726189 3849963 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:34.759675 3849928 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:34.780868 3849928 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:34.801648 3849928 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 17:15:34.822838 3849928 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+wandb: Currently logged in as: firasbdarwish (firfir_doodoo) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run 8uxz5sq2
+wandb: Tracking run with wandb version 0.23.0
+wandb: Run data is saved locally in /scratch/fbd2014/speedchess/examples/alphazero/wandb/run-20251129_171538-8uxz5sq2
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run sim_2
+wandb: ⭐️ View project at https://wandb.ai/firfir_doodoo/pgx-az
+wandb: 🚀 View run at https://wandb.ai/firfir_doodoo/pgx-az/runs/8uxz5sq2
+/scratch/fbd2014/speedchess/examples/alphazero/train.py:669: DeprecationWarning: jax.device_put_replicated is deprecated; use jax.device_put instead.
+  model, opt_state = jax.device_put_replicated((model, opt_state), devices)
+W1129 21:27:13.155364 3861234 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 21:27:13.170925 3861235 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 21:27:13.171664 3861233 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 21:27:13.172281 3861232 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 21:27:13.203346 3861200 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 21:27:13.223120 3861200 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 21:27:13.242309 3861200 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1129 21:27:13.261506 3861200 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+wandb: Currently logged in as: firasbdarwish (firfir_doodoo) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run prsfg8b7
+wandb: Tracking run with wandb version 0.23.0
+wandb: Run data is saved locally in /scratch/fbd2014/speedchess/examples/alphazero/wandb/run-20251129_212716-prsfg8b7
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run sim_4
+wandb: ⭐️ View project at https://wandb.ai/firfir_doodoo/pgx-az
+wandb: 🚀 View run at https://wandb.ai/firfir_doodoo/pgx-az/runs/prsfg8b7
+/scratch/fbd2014/speedchess/examples/alphazero/train.py:669: DeprecationWarning: jax.device_put_replicated is deprecated; use jax.device_put instead.
+  model, opt_state = jax.device_put_replicated((model, opt_state), devices)
+W1130 02:54:12.920867 3875832 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:12.935889 3875834 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:12.937346 3875833 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:12.937955 3875835 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:12.970575 3875800 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:12.990144 3875800 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:13.009560 3875800 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:13.028863 3875800 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+/scratch/fbd2014/speedchess/examples/alphazero/train.py:40: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class Config(BaseModel):
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/fbd2014/speedchess/examples/alphazero/train.py", line 80, in <module>
+    config: Config = Config(**conf_dict)
+                     ^^^^^^^^^^^^^^^^^^^
+  File "/home/fbd2014/.conda/envs/speedchess/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 3 validation errors for Config
+wandb
+  Extra inputs are not permitted [type=extra_forbidden, input_value={'group': 'sim_8'}, input_type=DictConfig]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+run_name
+  Extra inputs are not permitted [type=extra_forbidden, input_value='sim_8', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
++save_suffix
+  Extra inputs are not permitted [type=extra_forbidden, input_value='_sim8', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+W1130 02:54:17.301106 3875911 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:17.303297 3875909 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:17.308163 3875912 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:17.308943 3875910 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:17.340815 3875877 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:17.362106 3875877 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:17.383000 3875877 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:17.404236 3875877 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+/scratch/fbd2014/speedchess/examples/alphazero/train.py:40: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class Config(BaseModel):
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/fbd2014/speedchess/examples/alphazero/train.py", line 80, in <module>
+    config: Config = Config(**conf_dict)
+                     ^^^^^^^^^^^^^^^^^^^
+  File "/home/fbd2014/.conda/envs/speedchess/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 3 validation errors for Config
+wandb
+  Extra inputs are not permitted [type=extra_forbidden, input_value={'group': 'sim_16'}, input_type=DictConfig]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+run_name
+  Extra inputs are not permitted [type=extra_forbidden, input_value='sim_16', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
++save_suffix
+  Extra inputs are not permitted [type=extra_forbidden, input_value='_sim16', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+W1130 02:54:21.119322 3875972 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:21.131853 3875971 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:21.132524 3875973 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:21.133200 3875974 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:21.164765 3875939 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:21.186220 3875939 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:21.206997 3875939 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+W1130 02:54:21.228250 3875939 cuda_executor.cc:1802] GPU interconnect information not available: INTERNAL: NVML library doesn't have required functions.
+/scratch/fbd2014/speedchess/examples/alphazero/train.py:40: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class Config(BaseModel):
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/fbd2014/speedchess/examples/alphazero/train.py", line 80, in <module>
+    config: Config = Config(**conf_dict)
+                     ^^^^^^^^^^^^^^^^^^^
+  File "/home/fbd2014/.conda/envs/speedchess/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 3 validation errors for Config
+wandb
+  Extra inputs are not permitted [type=extra_forbidden, input_value={'group': 'sim_32'}, input_type=DictConfig]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
+run_name
+  Extra inputs are not permitted [type=extra_forbidden, input_value='sim_32', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
++save_suffix
+  Extra inputs are not permitted [type=extra_forbidden, input_value='_sim32', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden

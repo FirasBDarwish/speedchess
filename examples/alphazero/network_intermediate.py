@@ -73,7 +73,7 @@ class AZNet(hk.Module):
             x = jax.nn.relu(x)
 
         intermediate = x
-        
+
         # policy head
         logits = hk.Conv2D(output_channels=2, kernel_shape=1)(x)
         logits = hk.BatchNorm(True, True, 0.9)(logits, is_training, test_local_stats)

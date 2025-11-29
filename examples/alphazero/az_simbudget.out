@@ -1,0 +1,897 @@
+>>> Environment Info:
+     active environment : speedchess
+/home/fbd2014/.conda/envs/speedchess/bin/python
+Python: /home/fbd2014/.conda/envs/speedchess/bin/python
+Torch: 2.5.1+cu121 CUDA: True
+=== DIAGNOSTICS START ===
+Host: cn267
+Date: Sat Nov 29 17:15:22 +04 2025
+
+--- GPU Info (nvidia-smi) ---
+Sat Nov 29 17:15:22 2025       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.129.03             Driver Version: 535.129.03   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  NVIDIA A100-SXM4-80GB          Off | 00000000:01:00.0 Off |                    0 |
+| N/A   28C    P0              58W / 500W |      4MiB / 81920MiB |      0%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+|   1  NVIDIA A100-SXM4-80GB          Off | 00000000:41:00.0 Off |                    0 |
+| N/A   27C    P0              57W / 500W |      4MiB / 81920MiB |      0%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+|   2  NVIDIA A100-SXM4-80GB          Off | 00000000:81:00.0 Off |                    0 |
+| N/A   28C    P0              57W / 500W |      4MiB / 81920MiB |      0%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+|   3  NVIDIA A100-SXM4-80GB          Off | 00000000:C1:00.0 Off |                    0 |
+| N/A   27C    P0              58W / 500W |      4MiB / 81920MiB |      0%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|  No running processes found                                                           |
++---------------------------------------------------------------------------------------+
+
+--- CUDA Compiler (nvcc) ---
+nvcc not found
+
+--- Environment Variables ---
+CUDA_HOME: 
+LD_LIBRARY_PATH: 
+
+--- Python Environment ---
+/home/fbd2014/.conda/envs/speedchess/bin/python
+Python 3.11.14
+
+--- Installed Key Packages ---
+numpy                    2.3.5
+pydantic                 2.12.5
+pydantic_core            2.41.5
+torch                    2.5.1+cu121
+torchaudio               2.5.1+cu121
+torchvision              0.20.1+cu121
+wandb                    0.23.0
+
+--- PyTorch Internal Check ---
+Torch Version: 2.5.1+cu121
+CUDA Available: True
+CUDA Version in Torch: 12.1
+Device Count: 4
+Current Device: 0
+JAX Devices: [CudaDevice(id=0), CudaDevice(id=1), CudaDevice(id=2), CudaDevice(id=3)]
+=== DIAGNOSTICS END ===
+
+====================================================
+ Running AlphaZero training with num_simulations = 2
+====================================================
+[1;34mwandb[0m: 
+[1;34mwandb[0m: 🚀 View run [33msim_2[0m at: [34m[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20251129_171538-8uxz5sq2/logs[0m
+env_id='gardner_chess' seed=0 max_num_iters=400 num_channels=128 num_layers=6 resnet_v2=True selfplay_batch_size=1024 num_simulations=2 max_num_steps=256 training_batch_size=4096 learning_rate=0.001 eval_interval=5 wandb={'group': 'sim_2'} save_suffix='_sim2' run_name='sim_2' wandb_group=None
+{'iteration': 0, 'hours': 0.0, 'frames': 0, 'eval/vs_baseline/avg_R': -0.994140625, 'eval/vs_baseline/win_rate': 0.0029296875, 'eval/vs_baseline/draw_rate': 0.0, 'eval/vs_baseline/lose_rate': 0.9970703125}
+{'iteration': 1, 'train/policy_loss': 5.880359709262848, 'train/value_loss': 0.11366427829489112, 'hours': 0.018173404071066115, 'frames': 262144}
+{'iteration': 2, 'train/policy_loss': 3.959107678383589, 'train/value_loss': 0.10683188308030367, 'hours': 0.03264950573444367, 'frames': 524288}
+{'iteration': 3, 'train/policy_loss': 2.5226739570498466, 'train/value_loss': 0.11099605506751686, 'hours': 0.04279712895552318, 'frames': 786432}
+{'iteration': 4, 'train/policy_loss': 2.397722151130438, 'train/value_loss': 0.07981944305356592, 'hours': 0.05295111974080404, 'frames': 1048576}
+{'iteration': 5, 'train/policy_loss': 1.8102449178695679, 'train/value_loss': 0.0734185460023582, 'hours': 0.06310617287953695, 'frames': 1310720, 'eval/vs_baseline/avg_R': -0.01953125, 'eval/vs_baseline/win_rate': 0.490234375, 'eval/vs_baseline/draw_rate': 0.0, 'eval/vs_baseline/lose_rate': 0.509765625}
+{'iteration': 6, 'train/policy_loss': 2.073831098154187, 'train/value_loss': 0.08285367919597775, 'hours': 0.07326767762502034, 'frames': 1572864}
+{'iteration': 7, 'train/policy_loss': 2.004749670624733, 'train/value_loss': 0.0822150056483224, 'hours': 0.083409457537863, 'frames': 1835008}
+{'iteration': 8, 'train/policy_loss': 1.6947574447840452, 'train/value_loss': 0.080087736598216, 'hours': 0.0935669380426407, 'frames': 2097152}
+{'iteration': 9, 'train/policy_loss': 1.366313787177205, 'train/value_loss': 0.08179675927385688, 'hours': 0.1037182026439243, 'frames': 2359296}
+{'iteration': 10, 'train/policy_loss': 1.1844493858516216, 'train/value_loss': 0.09556151798460633, 'hours': 0.11386348075336881, 'frames': 2621440, 'eval/vs_baseline/avg_R': 0.2060546875, 'eval/vs_baseline/win_rate': 0.599609375, 'eval/vs_baseline/draw_rate': 0.0068359375, 'eval/vs_baseline/lose_rate': 0.3935546875}
+{'iteration': 11, 'train/policy_loss': 1.1132321059703827, 'train/value_loss': 0.0987946871900931, 'hours': 0.12400913880931008, 'frames': 2883584}
+{'iteration': 12, 'train/policy_loss': 1.3600492887198925, 'train/value_loss': 0.1031226059421897, 'hours': 0.13415778166717954, 'frames': 3145728}
+{'iteration': 13, 'train/policy_loss': 1.2818326391279697, 'train/value_loss': 0.10218022437766194, 'hours': 0.14429837756686742, 'frames': 3407872}
+{'iteration': 14, 'train/policy_loss': 1.3994443994015455, 'train/value_loss': 0.10627263493370265, 'hours': 0.15447214153077868, 'frames': 3670016}
+{'iteration': 15, 'train/policy_loss': 1.2740271762013435, 'train/value_loss': 0.1084580811439082, 'hours': 0.16461728208594853, 'frames': 3932160, 'eval/vs_baseline/avg_R': 0.2548828125, 'eval/vs_baseline/win_rate': 0.62109375, 'eval/vs_baseline/draw_rate': 0.0126953125, 'eval/vs_baseline/lose_rate': 0.3662109375}
+{'iteration': 16, 'train/policy_loss': 1.3625706285238266, 'train/value_loss': 0.09737950062844902, 'hours': 0.1747559043433931, 'frames': 4194304}
+{'iteration': 17, 'train/policy_loss': 1.25916563346982, 'train/value_loss': 0.10299001529347152, 'hours': 0.18490253660413952, 'frames': 4456448}
+{'iteration': 18, 'train/policy_loss': 1.0797384567558765, 'train/value_loss': 0.10357817588374019, 'hours': 0.19503606756528216, 'frames': 4718592}
+{'iteration': 19, 'train/policy_loss': 1.3532089553773403, 'train/value_loss': 0.10208993044216186, 'hours': 0.2051790689759784, 'frames': 4980736}
+{'iteration': 20, 'train/policy_loss': 1.125624617561698, 'train/value_loss': 0.10349569411482662, 'hours': 0.2153284724553426, 'frames': 5242880, 'eval/vs_baseline/avg_R': 0.2548828125, 'eval/vs_baseline/win_rate': 0.6103515625, 'eval/vs_baseline/draw_rate': 0.0341796875, 'eval/vs_baseline/lose_rate': 0.35546875}
+{'iteration': 21, 'train/policy_loss': 1.2016751132905483, 'train/value_loss': 0.10050172812771052, 'hours': 0.22549987845950653, 'frames': 5505024}
+{'iteration': 22, 'train/policy_loss': 1.0134563753381371, 'train/value_loss': 0.12189915985800326, 'hours': 0.23564378493361998, 'frames': 5767168}
+{'iteration': 23, 'train/policy_loss': 1.2216548416763544, 'train/value_loss': 0.11581567290704697, 'hours': 0.24579465025001096, 'frames': 6029312}
+{'iteration': 24, 'train/policy_loss': 1.2521328870207071, 'train/value_loss': 0.1320440371055156, 'hours': 0.25595212757587427, 'frames': 6291456}
+{'iteration': 25, 'train/policy_loss': 1.2371271084994078, 'train/value_loss': 0.14666576264426112, 'hours': 0.2661061494880252, 'frames': 6553600, 'eval/vs_baseline/avg_R': 0.279296875, 'eval/vs_baseline/win_rate': 0.6240234375, 'eval/vs_baseline/draw_rate': 0.03125, 'eval/vs_baseline/lose_rate': 0.3447265625}
+{'iteration': 26, 'train/policy_loss': 1.3164369016885757, 'train/value_loss': 0.152370342053473, 'hours': 0.2762614184617996, 'frames': 6815744}
+{'iteration': 27, 'train/policy_loss': 1.4697845429182053, 'train/value_loss': 0.12909856578335166, 'hours': 0.2864097130298614, 'frames': 7077888}
+{'iteration': 28, 'train/policy_loss': 1.3594015892595053, 'train/value_loss': 0.13654931029304862, 'hours': 0.29655617283450225, 'frames': 7340032}
+{'iteration': 29, 'train/policy_loss': 1.1585063617676497, 'train/value_loss': 0.1375102298334241, 'hours': 0.3067076716158124, 'frames': 7602176}
+{'iteration': 30, 'train/policy_loss': 1.313965080305934, 'train/value_loss': 0.13089125999249518, 'hours': 0.3168648795949087, 'frames': 7864320, 'eval/vs_baseline/avg_R': 0.265625, 'eval/vs_baseline/win_rate': 0.61328125, 'eval/vs_baseline/draw_rate': 0.0390625, 'eval/vs_baseline/lose_rate': 0.34765625}
+{'iteration': 31, 'train/policy_loss': 1.4241480957716703, 'train/value_loss': 0.14103834703564644, 'hours': 0.32700707879331364, 'frames': 8126464}
+{'iteration': 32, 'train/policy_loss': 1.212882598862052, 'train/value_loss': 0.1437527146190405, 'hours': 0.3371480568912293, 'frames': 8388608}
+{'iteration': 33, 'train/policy_loss': 1.2440555151551962, 'train/value_loss': 0.15037412918172777, 'hours': 0.3472934085792964, 'frames': 8650752}
+{'iteration': 34, 'train/policy_loss': 1.534149331972003, 'train/value_loss': 0.14040540787391365, 'hours': 0.35743850085470397, 'frames': 8912896}
+{'iteration': 35, 'train/policy_loss': 1.4913999922573566, 'train/value_loss': 0.14778310782276094, 'hours': 0.3675891627205741, 'frames': 9175040, 'eval/vs_baseline/avg_R': 0.31640625, 'eval/vs_baseline/win_rate': 0.6337890625, 'eval/vs_baseline/draw_rate': 0.048828125, 'eval/vs_baseline/lose_rate': 0.3173828125}
+{'iteration': 36, 'train/policy_loss': 1.3092532325536013, 'train/value_loss': 0.1598253771662712, 'hours': 0.3777488079335953, 'frames': 9437184}
+{'iteration': 37, 'train/policy_loss': 1.5465272385627031, 'train/value_loss': 0.1537229549139738, 'hours': 0.3878926968574522, 'frames': 9699328}
+{'iteration': 38, 'train/policy_loss': 1.2753739692270756, 'train/value_loss': 0.16911041853018105, 'hours': 0.3980384111404417, 'frames': 9961472}
+{'iteration': 39, 'train/policy_loss': 1.0747298952192068, 'train/value_loss': 0.17011235747486353, 'hours': 0.4081741942299735, 'frames': 10223616}
+{'iteration': 40, 'train/policy_loss': 1.1018691882491112, 'train/value_loss': 0.16048274002969265, 'hours': 0.41831848627991125, 'frames': 10485760, 'eval/vs_baseline/avg_R': 0.3251953125, 'eval/vs_baseline/win_rate': 0.6240234375, 'eval/vs_baseline/draw_rate': 0.0771484375, 'eval/vs_baseline/lose_rate': 0.298828125}
+{'iteration': 41, 'train/policy_loss': 1.1808098331093788, 'train/value_loss': 0.14698075456544757, 'hours': 0.42846939735942396, 'frames': 10747904}
+{'iteration': 42, 'train/policy_loss': 1.2183057740330696, 'train/value_loss': 0.11386270658113062, 'hours': 0.43862109462420124, 'frames': 11010048}
+{'iteration': 43, 'train/policy_loss': 1.1752237919718027, 'train/value_loss': 0.09390731377061456, 'hours': 0.44876339051458547, 'frames': 11272192}
+{'iteration': 44, 'train/policy_loss': 1.2101910430938005, 'train/value_loss': 0.17627294571138918, 'hours': 0.45890973998440615, 'frames': 11534336}
+{'iteration': 45, 'train/policy_loss': 1.163469772785902, 'train/value_loss': 0.1761970934458077, 'hours': 0.46906401442156875, 'frames': 11796480, 'eval/vs_baseline/avg_R': 0.30859375, 'eval/vs_baseline/win_rate': 0.623046875, 'eval/vs_baseline/draw_rate': 0.0625, 'eval/vs_baseline/lose_rate': 0.314453125}
+{'iteration': 46, 'train/policy_loss': 1.382717676460743, 'train/value_loss': 0.14032311527989805, 'hours': 0.4792062976625228, 'frames': 12058624}
+{'iteration': 47, 'train/policy_loss': 1.1868392378091812, 'train/value_loss': 0.16024889913387597, 'hours': 0.48935919821262336, 'frames': 12320768}
+{'iteration': 48, 'train/policy_loss': 1.2740710470825434, 'train/value_loss': 0.1598024156410247, 'hours': 0.49949664950370765, 'frames': 12582912}
+{'iteration': 49, 'train/policy_loss': 1.1643448006361723, 'train/value_loss': 0.18228839035145938, 'hours': 0.5096367441945603, 'frames': 12845056}
+{'iteration': 50, 'train/policy_loss': 1.039212859235704, 'train/value_loss': 0.17124689649790525, 'hours': 0.519787029292848, 'frames': 13107200, 'eval/vs_baseline/avg_R': 0.349609375, 'eval/vs_baseline/win_rate': 0.6318359375, 'eval/vs_baseline/draw_rate': 0.0859375, 'eval/vs_baseline/lose_rate': 0.2822265625}
+{'iteration': 51, 'train/policy_loss': 1.1459125652909279, 'train/value_loss': 0.15574398497119546, 'hours': 0.5299526021215647, 'frames': 13369344}
+{'iteration': 52, 'train/policy_loss': 1.168585566803813, 'train/value_loss': 0.1497357718180865, 'hours': 0.5400957794984178, 'frames': 13631488}
+{'iteration': 53, 'train/policy_loss': 1.3174312114715576, 'train/value_loss': 0.11217372724786401, 'hours': 0.5502355890141589, 'frames': 13893632}
+{'iteration': 54, 'train/policy_loss': 1.2470764387398958, 'train/value_loss': 0.14893049653619528, 'hours': 0.5603750876585638, 'frames': 14155776}
+{'iteration': 55, 'train/policy_loss': 1.3641807064414024, 'train/value_loss': 0.15642056218348444, 'hours': 0.5705309200949135, 'frames': 14417920, 'eval/vs_baseline/avg_R': 0.3310546875, 'eval/vs_baseline/win_rate': 0.626953125, 'eval/vs_baseline/draw_rate': 0.0771484375, 'eval/vs_baseline/lose_rate': 0.2958984375}
+{'iteration': 56, 'train/policy_loss': 1.1408230569213629, 'train/value_loss': 0.17707122769206762, 'hours': 0.5806654703617091, 'frames': 14680064}
+{'iteration': 57, 'train/policy_loss': 1.1323864813894033, 'train/value_loss': 0.1774450249504298, 'hours': 0.5908118159903416, 'frames': 14942208}
+{'iteration': 58, 'train/policy_loss': 1.2233954202383757, 'train/value_loss': 0.16383470245637, 'hours': 0.6009607621696256, 'frames': 15204352}
+{'iteration': 59, 'train/policy_loss': 1.374350456520915, 'train/value_loss': 0.16112797451205552, 'hours': 0.6111079664362797, 'frames': 15466496}
+{'iteration': 60, 'train/policy_loss': 1.1334154047071934, 'train/value_loss': 0.19997522816993296, 'hours': 0.621279357274373, 'frames': 15728640, 'eval/vs_baseline/avg_R': 0.4140625, 'eval/vs_baseline/win_rate': 0.6689453125, 'eval/vs_baseline/draw_rate': 0.076171875, 'eval/vs_baseline/lose_rate': 0.2548828125}
+{'iteration': 61, 'train/policy_loss': 1.1239967923611403, 'train/value_loss': 0.18419220997020602, 'hours': 0.6314241773552361, 'frames': 15990784}
+{'iteration': 62, 'train/policy_loss': 0.9515567142516375, 'train/value_loss': 0.1977268832270056, 'hours': 0.6415806345807178, 'frames': 16252928}
+{'iteration': 63, 'train/policy_loss': 1.016210506670177, 'train/value_loss': 0.17917217104695737, 'hours': 0.6517290754450689, 'frames': 16515072}
+{'iteration': 64, 'train/policy_loss': 1.100961308926344, 'train/value_loss': 0.19172279350459576, 'hours': 0.6618731149699949, 'frames': 16777216}
+{'iteration': 65, 'train/policy_loss': 1.1038844119757414, 'train/value_loss': 0.17863577720709145, 'hours': 0.6720421198341577, 'frames': 17039360, 'eval/vs_baseline/avg_R': 0.39453125, 'eval/vs_baseline/win_rate': 0.6552734375, 'eval/vs_baseline/draw_rate': 0.083984375, 'eval/vs_baseline/lose_rate': 0.2607421875}
+{'iteration': 66, 'train/policy_loss': 1.1504740212112665, 'train/value_loss': 0.1628761040046811, 'hours': 0.682188184327549, 'frames': 17301504}
+{'iteration': 67, 'train/policy_loss': 1.0756012834608555, 'train/value_loss': 0.19218297093175352, 'hours': 0.6923460576931632, 'frames': 17563648}
+{'iteration': 68, 'train/policy_loss': 1.0482210163027048, 'train/value_loss': 0.1759325279854238, 'hours': 0.7024810491005575, 'frames': 17825792}
+{'iteration': 69, 'train/policy_loss': 1.1249944772571325, 'train/value_loss': 0.17206884175539017, 'hours': 0.712627602020899, 'frames': 18087936}
+{'iteration': 70, 'train/policy_loss': 1.0479746107012033, 'train/value_loss': 0.19133995426818728, 'hours': 0.7227771074242058, 'frames': 18350080, 'eval/vs_baseline/avg_R': 0.46875, 'eval/vs_baseline/win_rate': 0.697265625, 'eval/vs_baseline/draw_rate': 0.07421875, 'eval/vs_baseline/lose_rate': 0.228515625}
+{'iteration': 71, 'train/policy_loss': 0.9939005104824901, 'train/value_loss': 0.1885879123583436, 'hours': 0.7329235737853576, 'frames': 18612224}
+{'iteration': 72, 'train/policy_loss': 1.024338522925973, 'train/value_loss': 0.19334162306040525, 'hours': 0.7430659337838487, 'frames': 18874368}
+{'iteration': 73, 'train/policy_loss': 1.031771150417626, 'train/value_loss': 0.18464509770274162, 'hours': 0.7532124915387891, 'frames': 19136512}
+{'iteration': 74, 'train/policy_loss': 1.0582110788673162, 'train/value_loss': 0.1590820704586804, 'hours': 0.7633611292309227, 'frames': 19398656}
+{'iteration': 75, 'train/policy_loss': 1.3220017813146114, 'train/value_loss': 0.17209707014262676, 'hours': 0.7735033577680583, 'frames': 19660800, 'eval/vs_baseline/avg_R': 0.4033203125, 'eval/vs_baseline/win_rate': 0.6689453125, 'eval/vs_baseline/draw_rate': 0.0654296875, 'eval/vs_baseline/lose_rate': 0.265625}
+{'iteration': 76, 'train/policy_loss': 1.4059656616300344, 'train/value_loss': 0.18321710103191435, 'hours': 0.7836544536881972, 'frames': 19922944}
+{'iteration': 77, 'train/policy_loss': 1.2184979021549225, 'train/value_loss': 0.1956456983461976, 'hours': 0.7937989004453019, 'frames': 20185088}
+{'iteration': 78, 'train/policy_loss': 1.2067140862345695, 'train/value_loss': 0.1876887958496809, 'hours': 0.8039475891987479, 'frames': 20447232}
+{'iteration': 79, 'train/policy_loss': 1.2506702914834023, 'train/value_loss': 0.1880784274544567, 'hours': 0.8140949832730819, 'frames': 20709376}
+{'iteration': 80, 'train/policy_loss': 1.2260963208973408, 'train/value_loss': 0.18115841457620263, 'hours': 0.8242380960120091, 'frames': 20971520, 'eval/vs_baseline/avg_R': 0.3701171875, 'eval/vs_baseline/win_rate': 0.646484375, 'eval/vs_baseline/draw_rate': 0.0771484375, 'eval/vs_baseline/lose_rate': 0.2763671875}
+{'iteration': 81, 'train/policy_loss': 1.0802521090954542, 'train/value_loss': 0.1920560970902443, 'hours': 0.8343851522604621, 'frames': 21233664}
+{'iteration': 82, 'train/policy_loss': 1.0378859033808112, 'train/value_loss': 0.19395828107371926, 'hours': 0.8445417937967509, 'frames': 21495808}
+{'iteration': 83, 'train/policy_loss': 1.2182385735213757, 'train/value_loss': 0.19231013813987374, 'hours': 0.8546900088257257, 'frames': 21757952}
+{'iteration': 84, 'train/policy_loss': 1.493479646742344, 'train/value_loss': 0.19113998184911907, 'hours': 0.8648394431670503, 'frames': 22020096}
+{'iteration': 85, 'train/policy_loss': 1.2945536337792873, 'train/value_loss': 0.19655254483222961, 'hours': 0.8749846182266867, 'frames': 22282240, 'eval/vs_baseline/avg_R': 0.4013671875, 'eval/vs_baseline/win_rate': 0.6650390625, 'eval/vs_baseline/draw_rate': 0.0712890625, 'eval/vs_baseline/lose_rate': 0.263671875}
+{'iteration': 86, 'train/policy_loss': 1.1955421157181263, 'train/value_loss': 0.18596047279424965, 'hours': 0.8851382947630348, 'frames': 22544384}
+{'iteration': 87, 'train/policy_loss': 1.094024982303381, 'train/value_loss': 0.19067209563218057, 'hours': 0.8952906797991854, 'frames': 22806528}
+{'iteration': 88, 'train/policy_loss': 0.9073069002479315, 'train/value_loss': 0.19775430392473936, 'hours': 0.90544001367357, 'frames': 23068672}
+{'iteration': 89, 'train/policy_loss': 1.169713657349348, 'train/value_loss': 0.17335380404256284, 'hours': 0.9155788594484324, 'frames': 23330816}
+{'iteration': 90, 'train/policy_loss': 0.9707243433222175, 'train/value_loss': 0.18497999478131533, 'hours': 0.9257186419434013, 'frames': 23592960, 'eval/vs_baseline/avg_R': 0.490234375, 'eval/vs_baseline/win_rate': 0.6953125, 'eval/vs_baseline/draw_rate': 0.099609375, 'eval/vs_baseline/lose_rate': 0.205078125}
+{'iteration': 91, 'train/policy_loss': 1.0078466003760695, 'train/value_loss': 0.18134188721887767, 'hours': 0.9358832198381419, 'frames': 23855104}
+{'iteration': 92, 'train/policy_loss': 1.0388175062835217, 'train/value_loss': 0.17552589788101614, 'hours': 0.9460452859931517, 'frames': 24117248}
+{'iteration': 93, 'train/policy_loss': 0.9112663380801678, 'train/value_loss': 0.17552385851740837, 'hours': 0.9561911375655063, 'frames': 24379392}
+{'iteration': 94, 'train/policy_loss': 0.9394775908440351, 'train/value_loss': 0.1649349806830287, 'hours': 0.9663329672151136, 'frames': 24641536}
+{'iteration': 95, 'train/policy_loss': 1.1536306738853455, 'train/value_loss': 0.1718061836436391, 'hours': 0.9764788673983674, 'frames': 24903680, 'eval/vs_baseline/avg_R': 0.462890625, 'eval/vs_baseline/win_rate': 0.6904296875, 'eval/vs_baseline/draw_rate': 0.08203125, 'eval/vs_baseline/lose_rate': 0.2275390625}
+{'iteration': 96, 'train/policy_loss': 1.055154399946332, 'train/value_loss': 0.17338322987779975, 'hours': 0.9866282084915368, 'frames': 25165824}
+{'iteration': 97, 'train/policy_loss': 0.9810580564662814, 'train/value_loss': 0.14360479544848204, 'hours': 0.996772446168793, 'frames': 25427968}
+{'iteration': 98, 'train/policy_loss': 1.242046756669879, 'train/value_loss': 0.1678943398874253, 'hours': 1.0069163925780185, 'frames': 25690112}
+{'iteration': 99, 'train/policy_loss': 1.4070459697395563, 'train/value_loss': 0.16385770798660815, 'hours': 1.017055404318703, 'frames': 25952256}
+{'iteration': 100, 'train/policy_loss': 1.4145076274871826, 'train/value_loss': 0.16399376397021115, 'hours': 1.027212493618329, 'frames': 26214400, 'eval/vs_baseline/avg_R': 0.41015625, 'eval/vs_baseline/win_rate': 0.6611328125, 'eval/vs_baseline/draw_rate': 0.087890625, 'eval/vs_baseline/lose_rate': 0.2509765625}
+{'iteration': 101, 'train/policy_loss': 1.3736381959170103, 'train/value_loss': 0.1816119768191129, 'hours': 1.0373716140455664, 'frames': 26476544}
+{'iteration': 102, 'train/policy_loss': 1.4496367871761322, 'train/value_loss': 0.18330843513831496, 'hours': 1.047533421383963, 'frames': 26738688}
+{'iteration': 103, 'train/policy_loss': 1.4386366121470928, 'train/value_loss': 0.1908196082804352, 'hours': 1.057677196529176, 'frames': 27000832}
+{'iteration': 104, 'train/policy_loss': 1.1621937230229378, 'train/value_loss': 0.20308532542549074, 'hours': 1.067817570302221, 'frames': 27262976}
+{'iteration': 105, 'train/policy_loss': 1.3415037151426077, 'train/value_loss': 0.2001387681812048, 'hours': 1.0779644671413628, 'frames': 27525120, 'eval/vs_baseline/avg_R': 0.380859375, 'eval/vs_baseline/win_rate': 0.650390625, 'eval/vs_baseline/draw_rate': 0.080078125, 'eval/vs_baseline/lose_rate': 0.26953125}
+{'iteration': 106, 'train/policy_loss': 1.4447006825357676, 'train/value_loss': 0.18857957911677659, 'hours': 1.0881155349810914, 'frames': 27787264}
+{'iteration': 107, 'train/policy_loss': 1.2092759534716606, 'train/value_loss': 0.2061319719068706, 'hours': 1.098256762557559, 'frames': 28049408}
+{'iteration': 108, 'train/policy_loss': 1.0368238035589457, 'train/value_loss': 0.1714097405783832, 'hours': 1.1083992220958068, 'frames': 28311552}
+{'iteration': 109, 'train/policy_loss': 0.9052846785634756, 'train/value_loss': 0.1563212221954018, 'hours': 1.1185383771525483, 'frames': 28573696}
+{'iteration': 110, 'train/policy_loss': 0.7848893469199538, 'train/value_loss': 0.1475738959852606, 'hours': 1.128684751523865, 'frames': 28835840, 'eval/vs_baseline/avg_R': 0.5546875, 'eval/vs_baseline/win_rate': 0.716796875, 'eval/vs_baseline/draw_rate': 0.12109375, 'eval/vs_baseline/lose_rate': 0.162109375}
+{'iteration': 111, 'train/policy_loss': 0.6559129375964403, 'train/value_loss': 0.09649713069666177, 'hours': 1.1388437393638817, 'frames': 29097984}
+{'iteration': 112, 'train/policy_loss': 0.7901472579687834, 'train/value_loss': 0.115294961608015, 'hours': 1.1489955302079513, 'frames': 29360128}
+{'iteration': 113, 'train/policy_loss': 0.858075468800962, 'train/value_loss': 0.14387385337613523, 'hours': 1.1591568861405048, 'frames': 29622272}
+{'iteration': 114, 'train/policy_loss': 1.0231729093939066, 'train/value_loss': 0.14398233266547322, 'hours': 1.1693414973550367, 'frames': 29884416}
+{'iteration': 115, 'train/policy_loss': 0.9395257225260139, 'train/value_loss': 0.16327292495407164, 'hours': 1.179491161902745, 'frames': 30146560, 'eval/vs_baseline/avg_R': 0.4814453125, 'eval/vs_baseline/win_rate': 0.6923828125, 'eval/vs_baseline/draw_rate': 0.0966796875, 'eval/vs_baseline/lose_rate': 0.2109375}
+{'iteration': 116, 'train/policy_loss': 0.8890040162950754, 'train/value_loss': 0.10633970669005066, 'hours': 1.189644570615556, 'frames': 30408704}
+{'iteration': 117, 'train/policy_loss': 1.185346206650138, 'train/value_loss': 0.16626791842281818, 'hours': 1.1997991825474628, 'frames': 30670848}
+{'iteration': 118, 'train/policy_loss': 1.0227875988930464, 'train/value_loss': 0.18521310063079, 'hours': 1.2099561129013692, 'frames': 30932992}
+{'iteration': 119, 'train/policy_loss': 1.239377684891224, 'train/value_loss': 0.17497188108973205, 'hours': 1.2201010940472279, 'frames': 31195136}
+{'iteration': 120, 'train/policy_loss': 1.2070017121732235, 'train/value_loss': 0.1843926291912794, 'hours': 1.2302589080068793, 'frames': 31457280, 'eval/vs_baseline/avg_R': 0.458984375, 'eval/vs_baseline/win_rate': 0.6865234375, 'eval/vs_baseline/draw_rate': 0.0859375, 'eval/vs_baseline/lose_rate': 0.2275390625}
+{'iteration': 121, 'train/policy_loss': 1.0142025630921125, 'train/value_loss': 0.17562693799845874, 'hours': 1.2404077667660176, 'frames': 31719424}
+{'iteration': 122, 'train/policy_loss': 0.9755506562069058, 'train/value_loss': 0.18850640230812132, 'hours': 1.2505531356732043, 'frames': 31981568}
+{'iteration': 123, 'train/policy_loss': 1.1147558260709047, 'train/value_loss': 0.15212919074110687, 'hours': 1.2606988900899878, 'frames': 32243712}
+{'iteration': 124, 'train/policy_loss': 1.0755463559180498, 'train/value_loss': 0.1851208524312824, 'hours': 1.2708425306611582, 'frames': 32505856}
+{'iteration': 125, 'train/policy_loss': 1.3619170431047678, 'train/value_loss': 0.18637781776487827, 'hours': 1.2809858901633147, 'frames': 32768000, 'eval/vs_baseline/avg_R': 0.4951171875, 'eval/vs_baseline/win_rate': 0.705078125, 'eval/vs_baseline/draw_rate': 0.0849609375, 'eval/vs_baseline/lose_rate': 0.2099609375}
+{'iteration': 126, 'train/policy_loss': 1.2994488403201103, 'train/value_loss': 0.20090172649361193, 'hours': 1.2911397462420984, 'frames': 33030144}
+{'iteration': 127, 'train/policy_loss': 1.112778065726161, 'train/value_loss': 0.18339249375276268, 'hours': 1.3012871524360434, 'frames': 33292288}
+{'iteration': 128, 'train/policy_loss': 1.3384266328066587, 'train/value_loss': 0.17647669254802167, 'hours': 1.3114392126268801, 'frames': 33554432}
+{'iteration': 129, 'train/policy_loss': 1.1412308439612389, 'train/value_loss': 0.1897368102800101, 'hours': 1.3215840822458258, 'frames': 33816576}
+{'iteration': 130, 'train/policy_loss': 1.0749549735337496, 'train/value_loss': 0.17618388449773192, 'hours': 1.3317280388540682, 'frames': 34078720, 'eval/vs_baseline/avg_R': 0.5400390625, 'eval/vs_baseline/win_rate': 0.7314453125, 'eval/vs_baseline/draw_rate': 0.0771484375, 'eval/vs_baseline/lose_rate': 0.19140625}
+{'iteration': 131, 'train/policy_loss': 1.1970530319958925, 'train/value_loss': 0.17531684506684542, 'hours': 1.3418854762448196, 'frames': 34340864}
+{'iteration': 132, 'train/policy_loss': 1.3424782771617174, 'train/value_loss': 0.17129797604866326, 'hours': 1.35203307489554, 'frames': 34603008}
+{'iteration': 133, 'train/policy_loss': 1.204428682103753, 'train/value_loss': 0.1728349793702364, 'hours': 1.362178696592648, 'frames': 34865152}
+{'iteration': 134, 'train/policy_loss': 1.2004509810358286, 'train/value_loss': 0.1758049433119595, 'hours': 1.372328091065088, 'frames': 35127296}
+{'iteration': 135, 'train/policy_loss': 1.1436060294508934, 'train/value_loss': 0.1756758438423276, 'hours': 1.3824784030516932, 'frames': 35389440, 'eval/vs_baseline/avg_R': 0.4931640625, 'eval/vs_baseline/win_rate': 0.7060546875, 'eval/vs_baseline/draw_rate': 0.0810546875, 'eval/vs_baseline/lose_rate': 0.212890625}
+{'iteration': 136, 'train/policy_loss': 1.173276960849762, 'train/value_loss': 0.14075682312250137, 'hours': 1.3926183491282982, 'frames': 35651584}
+{'iteration': 137, 'train/policy_loss': 1.2555594332516193, 'train/value_loss': 0.16270943800918758, 'hours': 1.4027656567758973, 'frames': 35913728}
+{'iteration': 138, 'train/policy_loss': 1.2007618881762028, 'train/value_loss': 0.16410780767910182, 'hours': 1.4129651091496138, 'frames': 36175872}
+{'iteration': 139, 'train/policy_loss': 1.3473881036043167, 'train/value_loss': 0.17149711912497878, 'hours': 1.4231208776103115, 'frames': 36438016}
+{'iteration': 140, 'train/policy_loss': 1.2049221228808165, 'train/value_loss': 0.17338996846228838, 'hours': 1.4332613262202993, 'frames': 36700160, 'eval/vs_baseline/avg_R': 0.5234375, 'eval/vs_baseline/win_rate': 0.720703125, 'eval/vs_baseline/draw_rate': 0.08203125, 'eval/vs_baseline/lose_rate': 0.197265625}
+{'iteration': 141, 'train/policy_loss': 1.3535596877336502, 'train/value_loss': 0.1564969893079251, 'hours': 1.443462384144464, 'frames': 36962304}
+{'iteration': 142, 'train/policy_loss': 1.2183820456266403, 'train/value_loss': 0.17608524509705603, 'hours': 1.4536011199156433, 'frames': 37224448}
+{'iteration': 143, 'train/policy_loss': 1.336364945396781, 'train/value_loss': 0.16911938437260687, 'hours': 1.463751751780509, 'frames': 37486592}
+{'iteration': 144, 'train/policy_loss': 1.1117148529738188, 'train/value_loss': 0.17446489515714347, 'hours': 1.4739009287622231, 'frames': 37748736}
+{'iteration': 145, 'train/policy_loss': 1.0645027495920658, 'train/value_loss': 0.19205046026036143, 'hours': 1.4840485218498434, 'frames': 38010880, 'eval/vs_baseline/avg_R': 0.5673828125, 'eval/vs_baseline/win_rate': 0.7470703125, 'eval/vs_baseline/draw_rate': 0.0732421875, 'eval/vs_baseline/lose_rate': 0.1796875}
+{'iteration': 146, 'train/policy_loss': 1.0363692659884691, 'train/value_loss': 0.17416562838479877, 'hours': 1.4942072391510002, 'frames': 38273024}
+{'iteration': 147, 'train/policy_loss': 1.100966401398182, 'train/value_loss': 0.17713813786394894, 'hours': 1.50435171842575, 'frames': 38535168}
+{'iteration': 148, 'train/policy_loss': 1.2939304914325476, 'train/value_loss': 0.18117761355824769, 'hours': 1.5144953938325239, 'frames': 38797312}
+{'iteration': 149, 'train/policy_loss': 1.2555584404617548, 'train/value_loss': 0.18519062385894358, 'hours': 1.5246341319878889, 'frames': 39059456}
+{'iteration': 150, 'train/policy_loss': 1.0613553673028946, 'train/value_loss': 0.19456375646404922, 'hours': 1.534781902101304, 'frames': 39321600, 'eval/vs_baseline/avg_R': 0.5283203125, 'eval/vs_baseline/win_rate': 0.720703125, 'eval/vs_baseline/draw_rate': 0.0869140625, 'eval/vs_baseline/lose_rate': 0.1923828125}
+{'iteration': 151, 'train/policy_loss': 1.2877635583281517, 'train/value_loss': 0.15881700511090457, 'hours': 1.5449325105879035, 'frames': 39583744}
+{'iteration': 152, 'train/policy_loss': 1.1433122996240854, 'train/value_loss': 0.1894394587725401, 'hours': 1.5551050385501644, 'frames': 39845888}
+{'iteration': 153, 'train/policy_loss': 1.282224265858531, 'train/value_loss': 0.16072184406220913, 'hours': 1.5653162757555639, 'frames': 40108032}
+{'iteration': 154, 'train/policy_loss': 1.0421056374907494, 'train/value_loss': 0.18016434321179986, 'hours': 1.5755321947071281, 'frames': 40370176}
+{'iteration': 155, 'train/policy_loss': 1.0416845455765724, 'train/value_loss': 0.14108541514724493, 'hours': 1.5856900800598985, 'frames': 40632320, 'eval/vs_baseline/avg_R': 0.595703125, 'eval/vs_baseline/win_rate': 0.7548828125, 'eval/vs_baseline/draw_rate': 0.0859375, 'eval/vs_baseline/lose_rate': 0.1591796875}
+{'iteration': 156, 'train/policy_loss': 1.083202175796032, 'train/value_loss': 0.13701671548187733, 'hours': 1.5958473830752895, 'frames': 40894464}
+{'iteration': 157, 'train/policy_loss': 1.1098561864346266, 'train/value_loss': 0.13093765929806978, 'hours': 1.6059865677356713, 'frames': 41156608}
+{'iteration': 158, 'train/policy_loss': 1.3170533124357462, 'train/value_loss': 0.15080063487403095, 'hours': 1.6161400228738778, 'frames': 41418752}
+{'iteration': 159, 'train/policy_loss': 1.293572699651122, 'train/value_loss': 0.18583195051178336, 'hours': 1.626271789007716, 'frames': 41680896}
+{'iteration': 160, 'train/policy_loss': 1.0233349539339542, 'train/value_loss': 0.19913397589698434, 'hours': 1.6364344739913934, 'frames': 41943040, 'eval/vs_baseline/avg_R': 0.59375, 'eval/vs_baseline/win_rate': 0.7490234375, 'eval/vs_baseline/draw_rate': 0.095703125, 'eval/vs_baseline/lose_rate': 0.1552734375}
+{'iteration': 161, 'train/policy_loss': 1.1134277563542128, 'train/value_loss': 0.16124310507439077, 'hours': 1.6465717632240713, 'frames': 42205184}
+{'iteration': 162, 'train/policy_loss': 1.0932274535298347, 'train/value_loss': 0.17701613972894847, 'hours': 1.6567138190401918, 'frames': 42467328}
+{'iteration': 163, 'train/policy_loss': 0.9423442119732499, 'train/value_loss': 0.1543701111804694, 'hours': 1.6668672159645286, 'frames': 42729472}
+{'iteration': 164, 'train/policy_loss': 0.7729743169620633, 'train/value_loss': 0.14636186556890607, 'hours': 1.677023559014002, 'frames': 42991616}
+{'iteration': 165, 'train/policy_loss': 0.9210786921903491, 'train/value_loss': 0.12593340035527945, 'hours': 1.6871671721670356, 'frames': 43253760, 'eval/vs_baseline/avg_R': 0.51953125, 'eval/vs_baseline/win_rate': 0.7080078125, 'eval/vs_baseline/draw_rate': 0.103515625, 'eval/vs_baseline/lose_rate': 0.1884765625}
+{'iteration': 166, 'train/policy_loss': 0.991125138476491, 'train/value_loss': 0.17742342897690833, 'hours': 1.6973144119977945, 'frames': 43515904}
+{'iteration': 167, 'train/policy_loss': 0.9626342337578535, 'train/value_loss': 0.16495140339247882, 'hours': 1.7074715158012173, 'frames': 43778048}
+{'iteration': 168, 'train/policy_loss': 1.0458959322422743, 'train/value_loss': 0.1808481952175498, 'hours': 1.7176174231370285, 'frames': 44040192}
+{'iteration': 169, 'train/policy_loss': 1.064680177718401, 'train/value_loss': 0.16766896098852158, 'hours': 1.727769444584846, 'frames': 44302336}
+{'iteration': 170, 'train/policy_loss': 0.8308820817619562, 'train/value_loss': 0.1213957496220246, 'hours': 1.7379316167698962, 'frames': 44564480, 'eval/vs_baseline/avg_R': 0.5546875, 'eval/vs_baseline/win_rate': 0.7177734375, 'eval/vs_baseline/draw_rate': 0.119140625, 'eval/vs_baseline/lose_rate': 0.1630859375}
+{'iteration': 171, 'train/policy_loss': 0.7439181767404079, 'train/value_loss': 0.12234982033260167, 'hours': 1.7480832599269014, 'frames': 44826624}
+{'iteration': 172, 'train/policy_loss': 0.9501506006345153, 'train/value_loss': 0.17451861803419888, 'hours': 1.7582619745863803, 'frames': 45088768}
+{'iteration': 173, 'train/policy_loss': 1.0331473965197802, 'train/value_loss': 0.2081076968461275, 'hours': 1.7684158504671514, 'frames': 45350912}
+{'iteration': 174, 'train/policy_loss': 0.9333668891340494, 'train/value_loss': 0.1711510147433728, 'hours': 1.7785625225967825, 'frames': 45613056}
+{'iteration': 175, 'train/policy_loss': 0.790779635310173, 'train/value_loss': 0.1401735928375274, 'hours': 1.7887080733643632, 'frames': 45875200, 'eval/vs_baseline/avg_R': 0.568359375, 'eval/vs_baseline/win_rate': 0.7265625, 'eval/vs_baseline/draw_rate': 0.115234375, 'eval/vs_baseline/lose_rate': 0.158203125}
+{'iteration': 176, 'train/policy_loss': 0.7126126391813159, 'train/value_loss': 0.12576250964775681, 'hours': 1.7988658236794997, 'frames': 46137344}
+{'iteration': 177, 'train/policy_loss': 0.7893346576020122, 'train/value_loss': 0.14700312237255275, 'hours': 1.8090213929282288, 'frames': 46399488}
+{'iteration': 178, 'train/policy_loss': 0.7810772517696023, 'train/value_loss': 0.1486331804189831, 'hours': 1.8191717668374374, 'frames': 46661632}
+{'iteration': 179, 'train/policy_loss': 0.7902087718248367, 'train/value_loss': 0.12877675192430615, 'hours': 1.8293147692415443, 'frames': 46923776}
+{'iteration': 180, 'train/policy_loss': 0.9011949561536312, 'train/value_loss': 0.14974929043091834, 'hours': 1.839465520713064, 'frames': 47185920, 'eval/vs_baseline/avg_R': 0.5419921875, 'eval/vs_baseline/win_rate': 0.724609375, 'eval/vs_baseline/draw_rate': 0.0927734375, 'eval/vs_baseline/lose_rate': 0.1826171875}
+{'iteration': 181, 'train/policy_loss': 1.1667981911450624, 'train/value_loss': 0.19788251025602221, 'hours': 1.8496238977379265, 'frames': 47448064}
+{'iteration': 182, 'train/policy_loss': 1.0437164697796106, 'train/value_loss': 0.18856069538742304, 'hours': 1.8597754310899306, 'frames': 47710208}
+{'iteration': 183, 'train/policy_loss': 1.1928225327283144, 'train/value_loss': 0.18426143587566912, 'hours': 1.8699280038807122, 'frames': 47972352}
+{'iteration': 184, 'train/policy_loss': 1.3347901664674282, 'train/value_loss': 0.1936752696055919, 'hours': 1.880078963372442, 'frames': 48234496}
+{'iteration': 185, 'train/policy_loss': 1.2643105406314135, 'train/value_loss': 0.209637368330732, 'hours': 1.8902274588743841, 'frames': 48496640, 'eval/vs_baseline/avg_R': 0.509765625, 'eval/vs_baseline/win_rate': 0.716796875, 'eval/vs_baseline/draw_rate': 0.076171875, 'eval/vs_baseline/lose_rate': 0.20703125}
+{'iteration': 186, 'train/policy_loss': 1.1600865852087736, 'train/value_loss': 0.19982986524701118, 'hours': 1.9003852333625153, 'frames': 48758784}
+{'iteration': 187, 'train/policy_loss': 1.2873723953962326, 'train/value_loss': 0.18685156269930303, 'hours': 1.9105333765347794, 'frames': 49020928}
+{'iteration': 188, 'train/policy_loss': 1.2495596874505281, 'train/value_loss': 0.18389198509976268, 'hours': 1.9206882707277928, 'frames': 49283072}
+{'iteration': 189, 'train/policy_loss': 1.1746799647808075, 'train/value_loss': 0.18897338677197695, 'hours': 1.93082578115993, 'frames': 49545216}
+{'iteration': 190, 'train/policy_loss': 1.1013056989759207, 'train/value_loss': 0.2018694723956287, 'hours': 1.9409827795293588, 'frames': 49807360, 'eval/vs_baseline/avg_R': 0.56640625, 'eval/vs_baseline/win_rate': 0.7392578125, 'eval/vs_baseline/draw_rate': 0.087890625, 'eval/vs_baseline/lose_rate': 0.1728515625}
+{'iteration': 191, 'train/policy_loss': 1.1548851411789656, 'train/value_loss': 0.19749539159238338, 'hours': 1.9511294834481336, 'frames': 50069504}
+{'iteration': 192, 'train/policy_loss': 1.082999175414443, 'train/value_loss': 0.18122061947360635, 'hours': 1.9612739194764022, 'frames': 50331648}
+{'iteration': 193, 'train/policy_loss': 1.1029924638569355, 'train/value_loss': 0.16411197488196194, 'hours': 1.9714316699902208, 'frames': 50593792}
+{'iteration': 194, 'train/policy_loss': 1.1562273912131786, 'train/value_loss': 0.1551463631913066, 'hours': 1.981574136349889, 'frames': 50855936}
+{'iteration': 195, 'train/policy_loss': 1.1100567393004894, 'train/value_loss': 0.17759974370710552, 'hours': 1.9917201210392836, 'frames': 51118080, 'eval/vs_baseline/avg_R': 0.5859375, 'eval/vs_baseline/win_rate': 0.7568359375, 'eval/vs_baseline/draw_rate': 0.072265625, 'eval/vs_baseline/lose_rate': 0.1708984375}
+{'iteration': 196, 'train/policy_loss': 1.1216416358947754, 'train/value_loss': 0.16417035600170493, 'hours': 2.0018682216273405, 'frames': 51380224}
+{'iteration': 197, 'train/policy_loss': 1.1125699747353792, 'train/value_loss': 0.1844374865759164, 'hours': 2.012018663485844, 'frames': 51642368}
+{'iteration': 198, 'train/policy_loss': 1.2069548647850752, 'train/value_loss': 0.17394747538492084, 'hours': 2.0221589673227722, 'frames': 51904512}
+{'iteration': 199, 'train/policy_loss': 1.2768781781196594, 'train/value_loss': 0.18139447830617428, 'hours': 2.032290686302714, 'frames': 52166656}
+{'iteration': 200, 'train/policy_loss': 1.272747227922082, 'train/value_loss': 0.19845620798878372, 'hours': 2.0424347031116477, 'frames': 52428800, 'eval/vs_baseline/avg_R': 0.560546875, 'eval/vs_baseline/win_rate': 0.736328125, 'eval/vs_baseline/draw_rate': 0.087890625, 'eval/vs_baseline/lose_rate': 0.17578125}
+{'iteration': 201, 'train/policy_loss': 1.0209358874708414, 'train/value_loss': 0.204150348668918, 'hours': 2.0525827678706903, 'frames': 52690944}
+{'iteration': 202, 'train/policy_loss': 0.9417557585984468, 'train/value_loss': 0.19316645548678935, 'hours': 2.0627338669697437, 'frames': 52953088}
+{'iteration': 203, 'train/policy_loss': 0.9790158132091165, 'train/value_loss': 0.16713567334227264, 'hours': 2.072872318228085, 'frames': 53215232}
+{'iteration': 204, 'train/policy_loss': 0.9651669589802623, 'train/value_loss': 0.16854781517758965, 'hours': 2.0830169332689703, 'frames': 53477376}
+{'iteration': 205, 'train/policy_loss': 0.96194570325315, 'train/value_loss': 0.17686308734118938, 'hours': 2.0931572761138275, 'frames': 53739520, 'eval/vs_baseline/avg_R': 0.625, 'eval/vs_baseline/win_rate': 0.7705078125, 'eval/vs_baseline/draw_rate': 0.083984375, 'eval/vs_baseline/lose_rate': 0.1455078125}
+{'iteration': 206, 'train/policy_loss': 1.0383456032723188, 'train/value_loss': 0.17466211691498756, 'hours': 2.103298223217328, 'frames': 54001664}
+{'iteration': 207, 'train/policy_loss': 1.1236293390393257, 'train/value_loss': 0.18115367460995913, 'hours': 2.1134431905216635, 'frames': 54263808}
+{'iteration': 208, 'train/policy_loss': 0.9813483702018857, 'train/value_loss': 0.19483407982625067, 'hours': 2.1236006446017153, 'frames': 54525952}
+{'iteration': 209, 'train/policy_loss': 1.0902736634016037, 'train/value_loss': 0.13894506823271513, 'hours': 2.1337775577439198, 'frames': 54788096}
+{'iteration': 210, 'train/policy_loss': 1.0293143820017576, 'train/value_loss': 0.16877947002649307, 'hours': 2.14392467631234, 'frames': 55050240, 'eval/vs_baseline/avg_R': 0.580078125, 'eval/vs_baseline/win_rate': 0.748046875, 'eval/vs_baseline/draw_rate': 0.083984375, 'eval/vs_baseline/lose_rate': 0.16796875}
+{'iteration': 211, 'train/policy_loss': 0.9643423371016979, 'train/value_loss': 0.1825394732877612, 'hours': 2.15408168680138, 'frames': 55312384}
+{'iteration': 212, 'train/policy_loss': 0.8967499975115061, 'train/value_loss': 0.21048390422947705, 'hours': 2.1642421226369004, 'frames': 55574528}
+{'iteration': 213, 'train/policy_loss': 0.7480115033686161, 'train/value_loss': 0.2154589684214443, 'hours': 2.1744015195634625, 'frames': 55836672}
+{'iteration': 214, 'train/policy_loss': 0.7905354360118508, 'train/value_loss': 0.1636010492220521, 'hours': 2.1845619387096824, 'frames': 56098816}
+{'iteration': 215, 'train/policy_loss': 0.970736718736589, 'train/value_loss': 0.1411892545875162, 'hours': 2.1947085394461943, 'frames': 56360960, 'eval/vs_baseline/avg_R': 0.6162109375, 'eval/vs_baseline/win_rate': 0.7666015625, 'eval/vs_baseline/draw_rate': 0.0830078125, 'eval/vs_baseline/lose_rate': 0.150390625}
+{'iteration': 216, 'train/policy_loss': 0.9378719767555594, 'train/value_loss': 0.18112144293263555, 'hours': 2.204869834383328, 'frames': 56623104}
+{'iteration': 217, 'train/policy_loss': 1.0446435417979956, 'train/value_loss': 0.17699133837595582, 'hours': 2.2150146543317364, 'frames': 56885248}
+{'iteration': 218, 'train/policy_loss': 0.9706102972850204, 'train/value_loss': 0.18009177991189063, 'hours': 2.225170168479283, 'frames': 57147392}
+{'iteration': 219, 'train/policy_loss': 1.1051234044134617, 'train/value_loss': 0.18073036149144173, 'hours': 2.235324717097811, 'frames': 57409536}
+{'iteration': 220, 'train/policy_loss': 1.1797077041119337, 'train/value_loss': 0.19619251461699605, 'hours': 2.245464970337019, 'frames': 57671680, 'eval/vs_baseline/avg_R': 0.546875, 'eval/vs_baseline/win_rate': 0.7255859375, 'eval/vs_baseline/draw_rate': 0.095703125, 'eval/vs_baseline/lose_rate': 0.1787109375}
+{'iteration': 221, 'train/policy_loss': 0.9991195481270552, 'train/value_loss': 0.21127841877751052, 'hours': 2.255618326332833, 'frames': 57933824}
+{'iteration': 222, 'train/policy_loss': 1.1346303969621658, 'train/value_loss': 0.1880135654937476, 'hours': 2.26575669950909, 'frames': 58195968}
+{'iteration': 223, 'train/policy_loss': 1.2281449902802706, 'train/value_loss': 0.2059185435064137, 'hours': 2.2759035259485234, 'frames': 58458112}
+{'iteration': 224, 'train/policy_loss': 1.0445607956498861, 'train/value_loss': 0.20785878924652934, 'hours': 2.286049381163384, 'frames': 58720256}
+{'iteration': 225, 'train/policy_loss': 0.8889874359592795, 'train/value_loss': 0.1787708222400397, 'hours': 2.2961867758962833, 'frames': 58982400, 'eval/vs_baseline/avg_R': 0.6005859375, 'eval/vs_baseline/win_rate': 0.76171875, 'eval/vs_baseline/draw_rate': 0.0771484375, 'eval/vs_baseline/lose_rate': 0.1611328125}
+{'iteration': 226, 'train/policy_loss': 1.1351737063378096, 'train/value_loss': 0.18236930621787906, 'hours': 2.3063486068116283, 'frames': 59244544}
+{'iteration': 227, 'train/policy_loss': 0.9773944020271301, 'train/value_loss': 0.18901978712528944, 'hours': 2.316490449441803, 'frames': 59506688}
+{'iteration': 228, 'train/policy_loss': 0.949077919125557, 'train/value_loss': 0.19536237511783838, 'hours': 2.3266370238860437, 'frames': 59768832}
+{'iteration': 229, 'train/policy_loss': 0.8995487336069345, 'train/value_loss': 0.18629248440265656, 'hours': 2.3367897059520075, 'frames': 60030976}
+{'iteration': 230, 'train/policy_loss': 0.9149528341367841, 'train/value_loss': 0.17911941814236343, 'hours': 2.3469357519017313, 'frames': 60293120, 'eval/vs_baseline/avg_R': 0.62890625, 'eval/vs_baseline/win_rate': 0.7529296875, 'eval/vs_baseline/draw_rate': 0.123046875, 'eval/vs_baseline/lose_rate': 0.1240234375}
+{'iteration': 231, 'train/policy_loss': 1.0400936799123883, 'train/value_loss': 0.21019079815596342, 'hours': 2.357087687916225, 'frames': 60555264}
+{'iteration': 232, 'train/policy_loss': 1.0450523737818003, 'train/value_loss': 0.20849010022357106, 'hours': 2.367238446275392, 'frames': 60817408}
+{'iteration': 233, 'train/policy_loss': 1.006131500005722, 'train/value_loss': 0.20883041433990002, 'hours': 2.377405133181147, 'frames': 61079552}
+{'iteration': 234, 'train/policy_loss': 1.0436468329280615, 'train/value_loss': 0.18446160457096994, 'hours': 2.3875506065951444, 'frames': 61341696}
+{'iteration': 235, 'train/policy_loss': 0.828057355247438, 'train/value_loss': 0.225568636553362, 'hours': 2.397689218123753, 'frames': 61603840, 'eval/vs_baseline/avg_R': 0.6318359375, 'eval/vs_baseline/win_rate': 0.7734375, 'eval/vs_baseline/draw_rate': 0.0849609375, 'eval/vs_baseline/lose_rate': 0.1416015625}
+{'iteration': 236, 'train/policy_loss': 1.1431733090430498, 'train/value_loss': 0.1948059913702309, 'hours': 2.4078450064526655, 'frames': 61865984}
+{'iteration': 237, 'train/policy_loss': 1.259803880006075, 'train/value_loss': 0.18906633742153645, 'hours': 2.417993382016817, 'frames': 62128128}
+{'iteration': 238, 'train/policy_loss': 1.0684788506478071, 'train/value_loss': 0.19904055958613753, 'hours': 2.428144724501503, 'frames': 62390272}
+{'iteration': 239, 'train/policy_loss': 0.9199186777696013, 'train/value_loss': 0.18089635437354445, 'hours': 2.438337529235415, 'frames': 62652416}
+{'iteration': 240, 'train/policy_loss': 1.0235218480229378, 'train/value_loss': 0.17505313409492373, 'hours': 2.4484902866681404, 'frames': 62914560, 'eval/vs_baseline/avg_R': 0.5947265625, 'eval/vs_baseline/win_rate': 0.75390625, 'eval/vs_baseline/draw_rate': 0.0869140625, 'eval/vs_baseline/lose_rate': 0.1591796875}
+{'iteration': 241, 'train/policy_loss': 1.1843067165464163, 'train/value_loss': 0.1975117668043822, 'hours': 2.4586374306016485, 'frames': 63176704}
+{'iteration': 242, 'train/policy_loss': 1.2216981872916222, 'train/value_loss': 0.18678324343636632, 'hours': 2.468787386814752, 'frames': 63438848}
+{'iteration': 243, 'train/policy_loss': 1.1856514476239681, 'train/value_loss': 0.20457327249459922, 'hours': 2.4789406581719704, 'frames': 63700992}
+{'iteration': 244, 'train/policy_loss': 1.2429401781409979, 'train/value_loss': 0.21635368652641773, 'hours': 2.4890834316942416, 'frames': 63963136}
+{'iteration': 245, 'train/policy_loss': 1.2703061811625957, 'train/value_loss': 0.19236867758445442, 'hours': 2.4992277550697315, 'frames': 64225280, 'eval/vs_baseline/avg_R': 0.6083984375, 'eval/vs_baseline/win_rate': 0.7724609375, 'eval/vs_baseline/draw_rate': 0.0634765625, 'eval/vs_baseline/lose_rate': 0.1640625}
+{'iteration': 246, 'train/policy_loss': 1.3390926644206047, 'train/value_loss': 0.1947319710161537, 'hours': 2.5093689768181897, 'frames': 64487424}
+{'iteration': 247, 'train/policy_loss': 1.2012384962290525, 'train/value_loss': 0.20103735639713705, 'hours': 2.5195267324315167, 'frames': 64749568}
+{'iteration': 248, 'train/policy_loss': 0.9364806646481156, 'train/value_loss': 0.20678777643479407, 'hours': 2.5296671786573186, 'frames': 65011712}
+{'iteration': 249, 'train/policy_loss': 0.9217957658693194, 'train/value_loss': 0.19838736159726977, 'hours': 2.539830549425548, 'frames': 65273856}
+{'iteration': 250, 'train/policy_loss': 0.8026728425174952, 'train/value_loss': 0.20825207536108792, 'hours': 2.5499775746133584, 'frames': 65536000, 'eval/vs_baseline/avg_R': 0.689453125, 'eval/vs_baseline/win_rate': 0.8037109375, 'eval/vs_baseline/draw_rate': 0.08203125, 'eval/vs_baseline/lose_rate': 0.1142578125}
+{'iteration': 251, 'train/policy_loss': 1.0333669129759073, 'train/value_loss': 0.20862537110224366, 'hours': 2.5601289585563864, 'frames': 65798144}
+{'iteration': 252, 'train/policy_loss': 1.1455181762576103, 'train/value_loss': 0.1765001812018454, 'hours': 2.570334568619727, 'frames': 66060288}
+{'iteration': 253, 'train/policy_loss': 1.0573163367807865, 'train/value_loss': 0.2000855691730976, 'hours': 2.5804735662539793, 'frames': 66322432}
+{'iteration': 254, 'train/policy_loss': 1.095414150506258, 'train/value_loss': 0.17560007306747139, 'hours': 2.5906265230973555, 'frames': 66584576}
+{'iteration': 255, 'train/policy_loss': 1.2480753250420094, 'train/value_loss': 0.16603949503041804, 'hours': 2.600788673228687, 'frames': 66846720, 'eval/vs_baseline/avg_R': 0.5771484375, 'eval/vs_baseline/win_rate': 0.7490234375, 'eval/vs_baseline/draw_rate': 0.0791015625, 'eval/vs_baseline/lose_rate': 0.171875}
+{'iteration': 256, 'train/policy_loss': 1.2608581632375717, 'train/value_loss': 0.17207207693718374, 'hours': 2.6109317889478465, 'frames': 67108864}
+{'iteration': 257, 'train/policy_loss': 1.1584855299443007, 'train/value_loss': 0.17372480547055602, 'hours': 2.6210822117328636, 'frames': 67371008}
+{'iteration': 258, 'train/policy_loss': 1.013432658277452, 'train/value_loss': 0.16285840212367475, 'hours': 2.6312421962949957, 'frames': 67633152}
+{'iteration': 259, 'train/policy_loss': 1.0188290802761912, 'train/value_loss': 0.16050556488335133, 'hours': 2.641412803199555, 'frames': 67895296}
+{'iteration': 260, 'train/policy_loss': 0.8573974911123514, 'train/value_loss': 0.1702420914079994, 'hours': 2.651564482119347, 'frames': 68157440, 'eval/vs_baseline/avg_R': 0.6162109375, 'eval/vs_baseline/win_rate': 0.751953125, 'eval/vs_baseline/draw_rate': 0.1123046875, 'eval/vs_baseline/lose_rate': 0.1357421875}
+{'iteration': 261, 'train/policy_loss': 0.9435630375519395, 'train/value_loss': 0.13495563808828592, 'hours': 2.6617195374435836, 'frames': 68419584}
+{'iteration': 262, 'train/policy_loss': 0.9972749231383204, 'train/value_loss': 0.16300527076236904, 'hours': 2.671859882407717, 'frames': 68681728}
+{'iteration': 263, 'train/policy_loss': 1.027279568836093, 'train/value_loss': 0.13707048702053726, 'hours': 2.682008905675675, 'frames': 68943872}
+{'iteration': 264, 'train/policy_loss': 1.124388087540865, 'train/value_loss': 0.14088191161863506, 'hours': 2.6921576895316432, 'frames': 69206016}
+{'iteration': 265, 'train/policy_loss': 1.057647617533803, 'train/value_loss': 0.17591485753655434, 'hours': 2.7023091148667855, 'frames': 69468160, 'eval/vs_baseline/avg_R': 0.619140625, 'eval/vs_baseline/win_rate': 0.7666015625, 'eval/vs_baseline/draw_rate': 0.0859375, 'eval/vs_baseline/lose_rate': 0.1474609375}
+{'iteration': 266, 'train/policy_loss': 0.9874904127791524, 'train/value_loss': 0.17485965881496668, 'hours': 2.7124534266524836, 'frames': 69730304}
+{'iteration': 267, 'train/policy_loss': 0.9783978927880526, 'train/value_loss': 0.1729612653143704, 'hours': 2.722607906924353, 'frames': 69992448}
+{'iteration': 268, 'train/policy_loss': 0.9551426069810987, 'train/value_loss': 0.17075314954854548, 'hours': 2.732750547528266, 'frames': 70254592}
+{'iteration': 269, 'train/policy_loss': 0.8853552993386984, 'train/value_loss': 0.17806910816580057, 'hours': 2.7428983009523806, 'frames': 70516736}
+{'iteration': 270, 'train/policy_loss': 0.8283283431082964, 'train/value_loss': 0.18092411942780018, 'hours': 2.7530476482046966, 'frames': 70778880, 'eval/vs_baseline/avg_R': 0.6923828125, 'eval/vs_baseline/win_rate': 0.796875, 'eval/vs_baseline/draw_rate': 0.0986328125, 'eval/vs_baseline/lose_rate': 0.1044921875}
+{'iteration': 271, 'train/policy_loss': 0.724788655526936, 'train/value_loss': 0.17688649147748947, 'hours': 2.763197949131329, 'frames': 71041024}
+{'iteration': 272, 'train/policy_loss': 0.7898821691051126, 'train/value_loss': 0.10339116910472512, 'hours': 2.7733507012658642, 'frames': 71303168}
+{'iteration': 273, 'train/policy_loss': 0.8339714799076319, 'train/value_loss': 0.12296512175817043, 'hours': 2.7835792959398686, 'frames': 71565312}
+{'iteration': 274, 'train/policy_loss': 0.9193096505478024, 'train/value_loss': 0.10490417387336493, 'hours': 2.793724177612198, 'frames': 71827456}
+{'iteration': 275, 'train/policy_loss': 0.9357083085924387, 'train/value_loss': 0.1340810009278357, 'hours': 2.8038745205269913, 'frames': 72089600, 'eval/vs_baseline/avg_R': 0.576171875, 'eval/vs_baseline/win_rate': 0.740234375, 'eval/vs_baseline/draw_rate': 0.095703125, 'eval/vs_baseline/lose_rate': 0.1640625}
+{'iteration': 276, 'train/policy_loss': 0.9847359610721469, 'train/value_loss': 0.13044438499491662, 'hours': 2.8140298387077114, 'frames': 72351744}
+{'iteration': 277, 'train/policy_loss': 0.8597209034487605, 'train/value_loss': 0.14519713702611625, 'hours': 2.8241762548685068, 'frames': 72613888}
+{'iteration': 278, 'train/policy_loss': 0.7687853556126356, 'train/value_loss': 0.1589004818815738, 'hours': 2.834325335820515, 'frames': 72876032}
+{'iteration': 279, 'train/policy_loss': 0.7276846785098314, 'train/value_loss': 0.0995524344034493, 'hours': 2.844474449621306, 'frames': 73138176}
+{'iteration': 280, 'train/policy_loss': 0.7675761189311743, 'train/value_loss': 0.09725495555903763, 'hours': 2.8546237468719475, 'frames': 73400320, 'eval/vs_baseline/avg_R': 0.6318359375, 'eval/vs_baseline/win_rate': 0.763671875, 'eval/vs_baseline/draw_rate': 0.1044921875, 'eval/vs_baseline/lose_rate': 0.1318359375}
+{'iteration': 281, 'train/policy_loss': 0.8166523920372128, 'train/value_loss': 0.15250076237134635, 'hours': 2.8647777187824244, 'frames': 73662464}
+{'iteration': 282, 'train/policy_loss': 0.9043751005083323, 'train/value_loss': 0.12811613420490175, 'hours': 2.874937454660733, 'frames': 73924608}
+{'iteration': 283, 'train/policy_loss': 1.0854998957365751, 'train/value_loss': 0.08969228458590806, 'hours': 2.8850948381423946, 'frames': 74186752}
+{'iteration': 284, 'train/policy_loss': 1.1381315775215626, 'train/value_loss': 0.13716430915519595, 'hours': 2.8952409692605334, 'frames': 74448896}
+{'iteration': 285, 'train/policy_loss': 1.0525307822972536, 'train/value_loss': 0.16234446899034083, 'hours': 2.9053914929760825, 'frames': 74711040, 'eval/vs_baseline/avg_R': 0.56640625, 'eval/vs_baseline/win_rate': 0.7216796875, 'eval/vs_baseline/draw_rate': 0.123046875, 'eval/vs_baseline/lose_rate': 0.1552734375}
+{'iteration': 286, 'train/policy_loss': 1.0565524194389582, 'train/value_loss': 0.13791921129450202, 'hours': 2.9155522567033767, 'frames': 74973184}
+{'iteration': 287, 'train/policy_loss': 1.2747565656900406, 'train/value_loss': 0.16132579115219414, 'hours': 2.9257075424989063, 'frames': 75235328}
+{'iteration': 288, 'train/policy_loss': 1.039848055690527, 'train/value_loss': 0.18591337883844972, 'hours': 2.9358507282204096, 'frames': 75497472}
+{'iteration': 289, 'train/policy_loss': 0.9799849782139063, 'train/value_loss': 0.12934440525714308, 'hours': 2.9460058203008437, 'frames': 75759616}
+{'iteration': 290, 'train/policy_loss': 0.906002433039248, 'train/value_loss': 0.14843002962879837, 'hours': 2.95615471555127, 'frames': 76021760, 'eval/vs_baseline/avg_R': 0.6171875, 'eval/vs_baseline/win_rate': 0.7470703125, 'eval/vs_baseline/draw_rate': 0.123046875, 'eval/vs_baseline/lose_rate': 0.1298828125}
+{'iteration': 291, 'train/policy_loss': 1.02033622097224, 'train/value_loss': 0.1762623516842723, 'hours': 2.9663149705860348, 'frames': 76283904}
+{'iteration': 292, 'train/policy_loss': 1.077924057841301, 'train/value_loss': 0.1751638795249164, 'hours': 2.976469383438428, 'frames': 76546048}
+{'iteration': 293, 'train/policy_loss': 1.1993846725672483, 'train/value_loss': 0.18137176404707134, 'hours': 2.9866250880559284, 'frames': 76808192}
+{'iteration': 294, 'train/policy_loss': 1.313696563243866, 'train/value_loss': 0.18090515956282616, 'hours': 2.996776479681333, 'frames': 77070336}
+{'iteration': 295, 'train/policy_loss': 1.2449876796454191, 'train/value_loss': 0.20360171026550233, 'hours': 3.00692555460665, 'frames': 77332480, 'eval/vs_baseline/avg_R': 0.578125, 'eval/vs_baseline/win_rate': 0.75, 'eval/vs_baseline/draw_rate': 0.078125, 'eval/vs_baseline/lose_rate': 0.171875}
+{'iteration': 296, 'train/policy_loss': 1.1835139356553555, 'train/value_loss': 0.20805367617867887, 'hours': 3.017075025637945, 'frames': 77594624}
+{'iteration': 297, 'train/policy_loss': 0.9642431549727917, 'train/value_loss': 0.20172451343387365, 'hours': 3.0272251296043398, 'frames': 77856768}
+{'iteration': 298, 'train/policy_loss': 1.0547289289534092, 'train/value_loss': 0.20184800401329994, 'hours': 3.03737255692482, 'frames': 78118912}
+{'iteration': 299, 'train/policy_loss': 1.1225681100040674, 'train/value_loss': 0.20757980993948877, 'hours': 3.0475218845076033, 'frames': 78381056}
+{'iteration': 300, 'train/policy_loss': 1.2334368955343962, 'train/value_loss': 0.2088122849818319, 'hours': 3.0576681780152852, 'frames': 78643200, 'eval/vs_baseline/avg_R': 0.60546875, 'eval/vs_baseline/win_rate': 0.7685546875, 'eval/vs_baseline/draw_rate': 0.068359375, 'eval/vs_baseline/lose_rate': 0.1630859375}
+{'iteration': 301, 'train/policy_loss': 1.259142054244876, 'train/value_loss': 0.2238750858232379, 'hours': 3.067824598948161, 'frames': 78905344}
+{'iteration': 302, 'train/policy_loss': 1.108232468366623, 'train/value_loss': 0.21914225979708135, 'hours': 3.0779710841178898, 'frames': 79167488}
+{'iteration': 303, 'train/policy_loss': 1.15290586091578, 'train/value_loss': 0.19574872101657093, 'hours': 3.0881271288792296, 'frames': 79429632}
+{'iteration': 304, 'train/policy_loss': 1.1590505577623844, 'train/value_loss': 0.18890618812292814, 'hours': 3.098271729482545, 'frames': 79691776}
+{'iteration': 305, 'train/policy_loss': 1.1704033091664314, 'train/value_loss': 0.17845495836809278, 'hours': 3.108423606687122, 'frames': 79953920, 'eval/vs_baseline/avg_R': 0.5546875, 'eval/vs_baseline/win_rate': 0.732421875, 'eval/vs_baseline/draw_rate': 0.08984375, 'eval/vs_baseline/lose_rate': 0.177734375}
+{'iteration': 306, 'train/policy_loss': 1.1336240619421005, 'train/value_loss': 0.17660358315333724, 'hours': 3.1185699402623706, 'frames': 80216064}
+{'iteration': 307, 'train/policy_loss': 1.133438065648079, 'train/value_loss': 0.1962217171676457, 'hours': 3.1287165072229173, 'frames': 80478208}
+{'iteration': 308, 'train/policy_loss': 1.156504087150097, 'train/value_loss': 0.19378170976415277, 'hours': 3.1388715194331276, 'frames': 80740352}
+{'iteration': 309, 'train/policy_loss': 1.1399153918027878, 'train/value_loss': 0.20251770014874637, 'hours': 3.1490251088142394, 'frames': 81002496}
+{'iteration': 310, 'train/policy_loss': 1.028065549209714, 'train/value_loss': 0.20496448734775186, 'hours': 3.159179741607772, 'frames': 81264640, 'eval/vs_baseline/avg_R': 0.62890625, 'eval/vs_baseline/win_rate': 0.775390625, 'eval/vs_baseline/draw_rate': 0.078125, 'eval/vs_baseline/lose_rate': 0.146484375}
+{'iteration': 311, 'train/policy_loss': 0.9448987413197756, 'train/value_loss': 0.1997556067071855, 'hours': 3.1693403760592145, 'frames': 81526784}
+{'iteration': 312, 'train/policy_loss': 0.8079425161704421, 'train/value_loss': 0.15868105925619602, 'hours': 3.179485935105218, 'frames': 81788928}
+{'iteration': 313, 'train/policy_loss': 0.8878676602616906, 'train/value_loss': 0.1597274539526552, 'hours': 3.1896387896935146, 'frames': 82051072}
+{'iteration': 314, 'train/policy_loss': 1.0672691781073809, 'train/value_loss': 0.1529878864530474, 'hours': 3.1997895764642292, 'frames': 82313216}
+{'iteration': 315, 'train/policy_loss': 1.0332949347794056, 'train/value_loss': 0.1546231012325734, 'hours': 3.2100288384490545, 'frames': 82575360, 'eval/vs_baseline/avg_R': 0.5693359375, 'eval/vs_baseline/win_rate': 0.7265625, 'eval/vs_baseline/draw_rate': 0.1162109375, 'eval/vs_baseline/lose_rate': 0.1572265625}
+{'iteration': 316, 'train/policy_loss': 0.8546123150736094, 'train/value_loss': 0.1783247992862016, 'hours': 3.220173561440574, 'frames': 82837504}
+{'iteration': 317, 'train/policy_loss': 1.0549926925450563, 'train/value_loss': 0.1828487291932106, 'hours': 3.2303205349710256, 'frames': 83099648}
+{'iteration': 318, 'train/policy_loss': 1.0238323956727982, 'train/value_loss': 0.16747576161287725, 'hours': 3.240456897483932, 'frames': 83361792}
+{'iteration': 319, 'train/policy_loss': 1.114931844174862, 'train/value_loss': 0.18970991298556328, 'hours': 3.250608457591799, 'frames': 83623936}
+{'iteration': 320, 'train/policy_loss': 0.9746106099337339, 'train/value_loss': 0.2167502494994551, 'hours': 3.2607656654384405, 'frames': 83886080, 'eval/vs_baseline/avg_R': 0.62109375, 'eval/vs_baseline/win_rate': 0.765625, 'eval/vs_baseline/draw_rate': 0.08984375, 'eval/vs_baseline/lose_rate': 0.14453125}
+{'iteration': 321, 'train/policy_loss': 0.9450590163469315, 'train/value_loss': 0.21415022225119174, 'hours': 3.2709380816088784, 'frames': 84148224}
+{'iteration': 322, 'train/policy_loss': 0.9612094443291426, 'train/value_loss': 0.13532544136978686, 'hours': 3.2811279114087424, 'frames': 84410368}
+{'iteration': 323, 'train/policy_loss': 1.0124547937884927, 'train/value_loss': 0.15365575556643307, 'hours': 3.2912665424744287, 'frames': 84672512}
+{'iteration': 324, 'train/policy_loss': 0.9637909987941384, 'train/value_loss': 0.15865761716850102, 'hours': 3.3014080535703236, 'frames': 84934656}
+{'iteration': 325, 'train/policy_loss': 0.9361901618540287, 'train/value_loss': 0.14582755998708308, 'hours': 3.311552114751604, 'frames': 85196800, 'eval/vs_baseline/avg_R': 0.6357421875, 'eval/vs_baseline/win_rate': 0.763671875, 'eval/vs_baseline/draw_rate': 0.1083984375, 'eval/vs_baseline/lose_rate': 0.1279296875}
+{'iteration': 326, 'train/policy_loss': 0.8848632778972387, 'train/value_loss': 0.1570058532524854, 'hours': 3.3216948986715744, 'frames': 85458944}
+{'iteration': 327, 'train/policy_loss': 0.7481218371540308, 'train/value_loss': 0.13799793645739555, 'hours': 3.331836979587873, 'frames': 85721088}
+{'iteration': 328, 'train/policy_loss': 0.6923418873921037, 'train/value_loss': 0.12757600529585034, 'hours': 3.3419853219721056, 'frames': 85983232}
+{'iteration': 329, 'train/policy_loss': 0.577822657302022, 'train/value_loss': 0.07639957417268306, 'hours': 3.352126860817274, 'frames': 86245376}
+{'iteration': 330, 'train/policy_loss': 0.6735598826780915, 'train/value_loss': 0.07274600036907941, 'hours': 3.3622724476787784, 'frames': 86507520, 'eval/vs_baseline/avg_R': 0.626953125, 'eval/vs_baseline/win_rate': 0.76953125, 'eval/vs_baseline/draw_rate': 0.087890625, 'eval/vs_baseline/lose_rate': 0.142578125}
+{'iteration': 331, 'train/policy_loss': 0.7935530710965395, 'train/value_loss': 0.11837489646859467, 'hours': 3.372437447706859, 'frames': 86769664}
+{'iteration': 332, 'train/policy_loss': 0.8481069523841143, 'train/value_loss': 0.09880203625652939, 'hours': 3.382581503788631, 'frames': 87031808}
+{'iteration': 333, 'train/policy_loss': 0.7762257615104318, 'train/value_loss': 0.0927450155140832, 'hours': 3.3927310916450297, 'frames': 87293952}
+{'iteration': 334, 'train/policy_loss': 0.890058116056025, 'train/value_loss': 0.17324672429822385, 'hours': 3.4028774220413642, 'frames': 87556096}
+{'iteration': 335, 'train/policy_loss': 0.9981010984629393, 'train/value_loss': 0.17084983177483082, 'hours': 3.4130198685328175, 'frames': 87818240, 'eval/vs_baseline/avg_R': 0.611328125, 'eval/vs_baseline/win_rate': 0.7451171875, 'eval/vs_baseline/draw_rate': 0.12109375, 'eval/vs_baseline/lose_rate': 0.1337890625}
+{'iteration': 336, 'train/policy_loss': 0.9319794215261936, 'train/value_loss': 0.17758196941576898, 'hours': 3.423168648613825, 'frames': 88080384}
+{'iteration': 337, 'train/policy_loss': 0.8703606501221657, 'train/value_loss': 0.1660091131925583, 'hours': 3.4333159694406734, 'frames': 88342528}
+{'iteration': 338, 'train/policy_loss': 1.0749552603811026, 'train/value_loss': 0.1456774331163615, 'hours': 3.443466926084626, 'frames': 88604672}
+{'iteration': 339, 'train/policy_loss': 1.0413454733788967, 'train/value_loss': 0.1629269546829164, 'hours': 3.4536238112052295, 'frames': 88866816}
+{'iteration': 340, 'train/policy_loss': 0.8311892235651612, 'train/value_loss': 0.17728543654084206, 'hours': 3.4637851454152013, 'frames': 89128960, 'eval/vs_baseline/avg_R': 0.693359375, 'eval/vs_baseline/win_rate': 0.791015625, 'eval/vs_baseline/draw_rate': 0.111328125, 'eval/vs_baseline/lose_rate': 0.09765625}
+{'iteration': 341, 'train/policy_loss': 1.0250614862889051, 'train/value_loss': 0.1251568216830492, 'hours': 3.473925067186357, 'frames': 89391104}
+{'iteration': 342, 'train/policy_loss': 1.0053601050749421, 'train/value_loss': 0.1497315012384206, 'hours': 3.484078516032962, 'frames': 89653248}
+{'iteration': 343, 'train/policy_loss': 0.954364825040102, 'train/value_loss': 0.11890096741262823, 'hours': 3.4942176588376377, 'frames': 89915392}
+{'iteration': 344, 'train/policy_loss': 0.926322540268302, 'train/value_loss': 0.10421646840404719, 'hours': 3.504369222455556, 'frames': 90177536}
+{'iteration': 345, 'train/policy_loss': 0.8378319786861539, 'train/value_loss': 0.09831261588260531, 'hours': 3.514523174762727, 'frames': 90439680, 'eval/vs_baseline/avg_R': 0.6220703125, 'eval/vs_baseline/win_rate': 0.7314453125, 'eval/vs_baseline/draw_rate': 0.1591796875, 'eval/vs_baseline/lose_rate': 0.109375}
+{'iteration': 346, 'train/policy_loss': 0.7491809446364641, 'train/value_loss': 0.0782533057499677, 'hours': 3.524667469329305, 'frames': 90701824}
+{'iteration': 347, 'train/policy_loss': 0.7391569521278143, 'train/value_loss': 0.048655989579856396, 'hours': 3.534809683892463, 'frames': 90963968}
+{'iteration': 348, 'train/policy_loss': 0.9955818830057979, 'train/value_loss': 0.1506551573984325, 'hours': 3.544943464332158, 'frames': 91226112}
+{'iteration': 349, 'train/policy_loss': 1.1234954223036766, 'train/value_loss': 0.1626615272834897, 'hours': 3.5550914282931236, 'frames': 91488256}
+{'iteration': 350, 'train/policy_loss': 1.0635677222162485, 'train/value_loss': 0.17676556576043367, 'hours': 3.5652366003725278, 'frames': 91750400, 'eval/vs_baseline/avg_R': 0.5458984375, 'eval/vs_baseline/win_rate': 0.71875, 'eval/vs_baseline/draw_rate': 0.1083984375, 'eval/vs_baseline/lose_rate': 0.1728515625}
+{'iteration': 351, 'train/policy_loss': 1.139816541224718, 'train/value_loss': 0.1873514512553811, 'hours': 3.5754005601008747, 'frames': 92012544}
+{'iteration': 352, 'train/policy_loss': 1.171412093564868, 'train/value_loss': 0.185972202103585, 'hours': 3.5855410102340923, 'frames': 92274688}
+{'iteration': 353, 'train/policy_loss': 1.0451650861650705, 'train/value_loss': 0.1667112980503589, 'hours': 3.595684961742826, 'frames': 92536832}
+{'iteration': 354, 'train/policy_loss': 0.9033466400578618, 'train/value_loss': 0.1958807883784175, 'hours': 3.605845984750325, 'frames': 92798976}
+{'iteration': 355, 'train/policy_loss': 1.0899466201663017, 'train/value_loss': 0.16265208763070405, 'hours': 3.61599513689677, 'frames': 93061120, 'eval/vs_baseline/avg_R': 0.5966796875, 'eval/vs_baseline/win_rate': 0.748046875, 'eval/vs_baseline/draw_rate': 0.1005859375, 'eval/vs_baseline/lose_rate': 0.1513671875}
+{'iteration': 356, 'train/policy_loss': 0.95381426718086, 'train/value_loss': 0.19086241675540805, 'hours': 3.626161342263223, 'frames': 93323264}
+{'iteration': 357, 'train/policy_loss': 1.0814672857522964, 'train/value_loss': 0.19610913121141493, 'hours': 3.63635590877798, 'frames': 93585408}
+{'iteration': 358, 'train/policy_loss': 0.8964628092944622, 'train/value_loss': 0.21757417754270136, 'hours': 3.64651308503416, 'frames': 93847552}
+{'iteration': 359, 'train/policy_loss': 0.9488664167001843, 'train/value_loss': 0.19427229510620236, 'hours': 3.6566723636786156, 'frames': 94109696}
+{'iteration': 360, 'train/policy_loss': 0.9117753375321627, 'train/value_loss': 0.1904484615661204, 'hours': 3.666816679702866, 'frames': 94371840, 'eval/vs_baseline/avg_R': 0.65234375, 'eval/vs_baseline/win_rate': 0.775390625, 'eval/vs_baseline/draw_rate': 0.1015625, 'eval/vs_baseline/lose_rate': 0.123046875}
+{'iteration': 361, 'train/policy_loss': 0.9356702463701367, 'train/value_loss': 0.19045999459922314, 'hours': 3.6769707793659645, 'frames': 94633984}
+{'iteration': 362, 'train/policy_loss': 1.1692049223929644, 'train/value_loss': 0.1925682823639363, 'hours': 3.6871166984240227, 'frames': 94896128}
+{'iteration': 363, 'train/policy_loss': 1.2636447083204985, 'train/value_loss': 0.18002337939105928, 'hours': 3.6972745068868016, 'frames': 95158272}
+{'iteration': 364, 'train/policy_loss': 1.0143639333546162, 'train/value_loss': 0.1973237181082368, 'hours': 3.707425363858542, 'frames': 95420416}
+{'iteration': 365, 'train/policy_loss': 0.9233426321297884, 'train/value_loss': 0.17143431934528053, 'hours': 3.717571360137729, 'frames': 95682560, 'eval/vs_baseline/avg_R': 0.568359375, 'eval/vs_baseline/win_rate': 0.7216796875, 'eval/vs_baseline/draw_rate': 0.125, 'eval/vs_baseline/lose_rate': 0.1533203125}
+{'iteration': 366, 'train/policy_loss': 0.9536791397258639, 'train/value_loss': 0.18688713270239532, 'hours': 3.727717464698687, 'frames': 95944704}
+{'iteration': 367, 'train/policy_loss': 0.9542939541861415, 'train/value_loss': 0.16627121856436133, 'hours': 3.737864314383932, 'frames': 96206848}
+{'iteration': 368, 'train/policy_loss': 0.9879606198519468, 'train/value_loss': 0.17739219614304602, 'hours': 3.7480219524436538, 'frames': 96468992}
+{'iteration': 369, 'train/policy_loss': 0.8353135194629431, 'train/value_loss': 0.1794740562327206, 'hours': 3.758169787393677, 'frames': 96731136}
+{'iteration': 370, 'train/policy_loss': 0.8188198795542121, 'train/value_loss': 0.15138459065929055, 'hours': 3.768320582509042, 'frames': 96993280, 'eval/vs_baseline/avg_R': 0.576171875, 'eval/vs_baseline/win_rate': 0.7158203125, 'eval/vs_baseline/draw_rate': 0.14453125, 'eval/vs_baseline/lose_rate': 0.1396484375}
+{'iteration': 371, 'train/policy_loss': 0.8163473522290587, 'train/value_loss': 0.15117095643654466, 'hours': 3.778466191424265, 'frames': 97255424}
+{'iteration': 372, 'train/policy_loss': 1.0597216226160526, 'train/value_loss': 0.11148205690551549, 'hours': 3.7886230493254147, 'frames': 97517568}
+{'iteration': 373, 'train/policy_loss': 1.040885366499424, 'train/value_loss': 0.1375076756812632, 'hours': 3.79876687553194, 'frames': 97779712}
+{'iteration': 374, 'train/policy_loss': 0.9847724307328463, 'train/value_loss': 0.14474655920639634, 'hours': 3.808909888135064, 'frames': 98041856}
+{'iteration': 375, 'train/policy_loss': 1.082041397690773, 'train/value_loss': 0.1727915529627353, 'hours': 3.8190578768650707, 'frames': 98304000, 'eval/vs_baseline/avg_R': 0.5673828125, 'eval/vs_baseline/win_rate': 0.7333984375, 'eval/vs_baseline/draw_rate': 0.1005859375, 'eval/vs_baseline/lose_rate': 0.166015625}
+{'iteration': 376, 'train/policy_loss': 0.9931875420734286, 'train/value_loss': 0.16790274297818542, 'hours': 3.8292000532150285, 'frames': 98566144}
+{'iteration': 377, 'train/policy_loss': 0.9890636699274182, 'train/value_loss': 0.17048374540172517, 'hours': 3.8393552398681656, 'frames': 98828288}
+{'iteration': 378, 'train/policy_loss': 0.9570716638118029, 'train/value_loss': 0.19295432488434017, 'hours': 3.8495137578911267, 'frames': 99090432}
+{'iteration': 379, 'train/policy_loss': 0.8197825597599149, 'train/value_loss': 0.19398680073209107, 'hours': 3.85966706607077, 'frames': 99352576}
+{'iteration': 380, 'train/policy_loss': 0.9411636525765061, 'train/value_loss': 0.16754184407182038, 'hours': 3.8698169895675463, 'frames': 99614720, 'eval/vs_baseline/avg_R': 0.6005859375, 'eval/vs_baseline/win_rate': 0.7490234375, 'eval/vs_baseline/draw_rate': 0.1025390625, 'eval/vs_baseline/lose_rate': 0.1484375}
+{'iteration': 381, 'train/policy_loss': 1.0214482229202986, 'train/value_loss': 0.16204284969717264, 'hours': 3.8799726167652357, 'frames': 99876864}
+{'iteration': 382, 'train/policy_loss': 0.9876703200861812, 'train/value_loss': 0.18464852729812264, 'hours': 3.8901170092158863, 'frames': 100139008}
+{'iteration': 383, 'train/policy_loss': 0.997254267334938, 'train/value_loss': 0.17829407448880374, 'hours': 3.900271475778687, 'frames': 100401152}
+{'iteration': 384, 'train/policy_loss': 0.8917979365214705, 'train/value_loss': 0.16444479348137975, 'hours': 3.9104224277867226, 'frames': 100663296}
+{'iteration': 385, 'train/policy_loss': 0.9743899060413241, 'train/value_loss': 0.14733745018020272, 'hours': 3.9205642594231516, 'frames': 100925440, 'eval/vs_baseline/avg_R': 0.6484375, 'eval/vs_baseline/win_rate': 0.7607421875, 'eval/vs_baseline/draw_rate': 0.126953125, 'eval/vs_baseline/lose_rate': 0.1123046875}
+{'iteration': 386, 'train/policy_loss': 0.9826187761500478, 'train/value_loss': 0.13359831273555756, 'hours': 3.9307197912534093, 'frames': 101187584}
+{'iteration': 387, 'train/policy_loss': 0.9666541898623109, 'train/value_loss': 0.12807714939117432, 'hours': 3.94087057027552, 'frames': 101449728}
+{'iteration': 388, 'train/policy_loss': 0.8835263270884752, 'train/value_loss': 0.13518108520656824, 'hours': 3.9510105076101105, 'frames': 101711872}
+{'iteration': 389, 'train/policy_loss': 1.0418012673035264, 'train/value_loss': 0.12268007674720138, 'hours': 3.961153525511425, 'frames': 101974016}
+{'iteration': 390, 'train/policy_loss': 0.9732477609068155, 'train/value_loss': 0.1954052997753024, 'hours': 3.9712998863723556, 'frames': 102236160, 'eval/vs_baseline/avg_R': 0.6689453125, 'eval/vs_baseline/win_rate': 0.7861328125, 'eval/vs_baseline/draw_rate': 0.0966796875, 'eval/vs_baseline/lose_rate': 0.1171875}
+{'iteration': 391, 'train/policy_loss': 0.9377683605998755, 'train/value_loss': 0.19542828388512135, 'hours': 3.9814466016822405, 'frames': 102498304}
+{'iteration': 392, 'train/policy_loss': 0.9133334280923009, 'train/value_loss': 0.17386858840472996, 'hours': 3.9915993607044236, 'frames': 102760448}
+{'iteration': 393, 'train/policy_loss': 0.9632392814382911, 'train/value_loss': 0.17535015661269426, 'hours': 4.001756151451007, 'frames': 103022592}
+{'iteration': 394, 'train/policy_loss': 0.9944777404889464, 'train/value_loss': 0.1499046089593321, 'hours': 4.011900973452464, 'frames': 103284736}
+{'iteration': 395, 'train/policy_loss': 0.9092786153778434, 'train/value_loss': 0.15420114039443433, 'hours': 4.022042545212642, 'frames': 103546880, 'eval/vs_baseline/avg_R': 0.625, 'eval/vs_baseline/win_rate': 0.7509765625, 'eval/vs_baseline/draw_rate': 0.123046875, 'eval/vs_baseline/lose_rate': 0.1259765625}
+{'iteration': 396, 'train/policy_loss': 0.8342171059921384, 'train/value_loss': 0.144129553809762, 'hours': 4.0322142419550175, 'frames': 103809024}
+{'iteration': 397, 'train/policy_loss': 0.8427688088268042, 'train/value_loss': 0.10213718714658171, 'hours': 4.042428839339152, 'frames': 104071168}
+{'iteration': 398, 'train/policy_loss': 0.8629057332873344, 'train/value_loss': 0.08245406078640372, 'hours': 4.0525734880235476, 'frames': 104333312}
+{'iteration': 399, 'train/policy_loss': 0.8389075603336096, 'train/value_loss': 0.08297575800679624, 'hours': 4.062717943986258, 'frames': 104595456}
+{'iteration': 400, 'train/policy_loss': 0.8324621394276619, 'train/value_loss': 0.05405905650695786, 'hours': 4.072858137422139, 'frames': 104857600, 'eval/vs_baseline/avg_R': 0.587890625, 'eval/vs_baseline/win_rate': 0.7421875, 'eval/vs_baseline/draw_rate': 0.103515625, 'eval/vs_baseline/lose_rate': 0.154296875}
+====================================================
+ Running AlphaZero training with num_simulations = 4
+====================================================
+[1;34mwandb[0m: 
+[1;34mwandb[0m: 🚀 View run [33msim_4[0m at: [34m[0m
+[1;34mwandb[0m: Find logs at: [1;35mwandb/run-20251129_212716-prsfg8b7/logs[0m
+env_id='gardner_chess' seed=0 max_num_iters=400 num_channels=128 num_layers=6 resnet_v2=True selfplay_batch_size=1024 num_simulations=4 max_num_steps=256 training_batch_size=4096 learning_rate=0.001 eval_interval=5 wandb={'group': 'sim_4'} save_suffix='_sim4' run_name='sim_4' wandb_group=None
+{'iteration': 0, 'hours': 0.0, 'frames': 0, 'eval/vs_baseline/avg_R': -0.994140625, 'eval/vs_baseline/win_rate': 0.0029296875, 'eval/vs_baseline/draw_rate': 0.0, 'eval/vs_baseline/lose_rate': 0.9970703125}
+{'iteration': 1, 'train/policy_loss': 5.869990304112434, 'train/value_loss': 0.17158050718717277, 'hours': 0.021312351557943556, 'frames': 262144}
+{'iteration': 2, 'train/policy_loss': 3.6925211772322655, 'train/value_loss': 0.11255692515987903, 'hours': 0.03896074851353963, 'frames': 524288}
+{'iteration': 3, 'train/policy_loss': 2.6921120062470436, 'train/value_loss': 0.11279624269809574, 'hours': 0.052264696955680846, 'frames': 786432}
+{'iteration': 4, 'train/policy_loss': 2.290670409798622, 'train/value_loss': 0.12020716292317957, 'hours': 0.06555096732245551, 'frames': 1048576}
+{'iteration': 5, 'train/policy_loss': 1.9734444208443165, 'train/value_loss': 0.1292469382751733, 'hours': 0.07888388044304318, 'frames': 1310720, 'eval/vs_baseline/avg_R': -0.111328125, 'eval/vs_baseline/win_rate': 0.443359375, 'eval/vs_baseline/draw_rate': 0.001953125, 'eval/vs_baseline/lose_rate': 0.5546875}
+{'iteration': 6, 'train/policy_loss': 1.5285417586565018, 'train/value_loss': 0.1342047416837886, 'hours': 0.09217897137006123, 'frames': 1572864}
+{'iteration': 7, 'train/policy_loss': 1.3023272063583136, 'train/value_loss': 0.14118235441856086, 'hours': 0.10548417839739058, 'frames': 1835008}
+{'iteration': 8, 'train/policy_loss': 1.2961791194975376, 'train/value_loss': 0.14381091389805079, 'hours': 0.11878715283340878, 'frames': 2097152}
+{'iteration': 9, 'train/policy_loss': 1.137016186490655, 'train/value_loss': 0.15366670000366867, 'hours': 0.13209090054035186, 'frames': 2359296}
+{'iteration': 10, 'train/policy_loss': 1.0503922691568732, 'train/value_loss': 0.14381603593938053, 'hours': 0.14539099329047733, 'frames': 2621440, 'eval/vs_baseline/avg_R': 0.125, 'eval/vs_baseline/win_rate': 0.5478515625, 'eval/vs_baseline/draw_rate': 0.029296875, 'eval/vs_baseline/lose_rate': 0.4228515625}
+{'iteration': 11, 'train/policy_loss': 0.9622986763715744, 'train/value_loss': 0.15744671341963112, 'hours': 0.15869958771599663, 'frames': 2883584}
+{'iteration': 12, 'train/policy_loss': 0.8908975590020418, 'train/value_loss': 0.12572779459878802, 'hours': 0.17200505283143785, 'frames': 3145728}
+{'iteration': 13, 'train/policy_loss': 0.8026009304448962, 'train/value_loss': 0.1559258804190904, 'hours': 0.18529883166154226, 'frames': 3407872}
+{'iteration': 14, 'train/policy_loss': 0.7585545871406794, 'train/value_loss': 0.14752158406190574, 'hours': 0.19860290706157685, 'frames': 3670016}
+{'iteration': 15, 'train/policy_loss': 0.635144897736609, 'train/value_loss': 0.12036811735015363, 'hours': 0.2119003094567193, 'frames': 3932160, 'eval/vs_baseline/avg_R': 0.2431640625, 'eval/vs_baseline/win_rate': 0.5947265625, 'eval/vs_baseline/draw_rate': 0.0537109375, 'eval/vs_baseline/lose_rate': 0.3515625}
+{'iteration': 16, 'train/policy_loss': 0.7554678665474057, 'train/value_loss': 0.1508683548308909, 'hours': 0.22521394782596166, 'frames': 4194304}
+{'iteration': 17, 'train/policy_loss': 0.6301143737509847, 'train/value_loss': 0.0896535343490541, 'hours': 0.23850085218747458, 'frames': 4456448}
+{'iteration': 18, 'train/policy_loss': 0.5687451530247927, 'train/value_loss': 0.08390642865560949, 'hours': 0.25179062174426187, 'frames': 4718592}
+{'iteration': 19, 'train/policy_loss': 0.5686373077332973, 'train/value_loss': 0.0969466483220458, 'hours': 0.2650892687506146, 'frames': 4980736}
+{'iteration': 20, 'train/policy_loss': 0.6712186988443136, 'train/value_loss': 0.09721151203848422, 'hours': 0.2783919859594769, 'frames': 5242880, 'eval/vs_baseline/avg_R': 0.310546875, 'eval/vs_baseline/win_rate': 0.6103515625, 'eval/vs_baseline/draw_rate': 0.08984375, 'eval/vs_baseline/lose_rate': 0.2998046875}
+{'iteration': 21, 'train/policy_loss': 0.6709724860265851, 'train/value_loss': 0.09703060577157885, 'hours': 0.29170281337367165, 'frames': 5505024}
+{'iteration': 22, 'train/policy_loss': 0.6993996975943446, 'train/value_loss': 0.08392384636681527, 'hours': 0.30499414854579504, 'frames': 5767168}
+{'iteration': 23, 'train/policy_loss': 0.6713537080213428, 'train/value_loss': 0.07264157361350954, 'hours': 0.31828938643137616, 'frames': 6029312}
+{'iteration': 24, 'train/policy_loss': 0.7575258053839207, 'train/value_loss': 0.150662655942142, 'hours': 0.3315837946865294, 'frames': 6291456}
+{'iteration': 25, 'train/policy_loss': 0.7278506364673376, 'train/value_loss': 0.10399647511076182, 'hours': 0.3448761362499661, 'frames': 6553600, 'eval/vs_baseline/avg_R': 0.3369140625, 'eval/vs_baseline/win_rate': 0.6171875, 'eval/vs_baseline/draw_rate': 0.1025390625, 'eval/vs_baseline/lose_rate': 0.2802734375}
+{'iteration': 26, 'train/policy_loss': 0.6154833221808076, 'train/value_loss': 0.08728187147062272, 'hours': 0.3581851120127572, 'frames': 6815744}
+{'iteration': 27, 'train/policy_loss': 0.6385918976739049, 'train/value_loss': 0.10583025740925223, 'hours': 0.3714886389176051, 'frames': 7077888}
+{'iteration': 28, 'train/policy_loss': 0.7215030509978533, 'train/value_loss': 0.17834777291864157, 'hours': 0.3847919699218538, 'frames': 7340032}
+{'iteration': 29, 'train/policy_loss': 0.8211895460262895, 'train/value_loss': 0.16439793980680406, 'hours': 0.3980848285224703, 'frames': 7602176}
+{'iteration': 30, 'train/policy_loss': 0.7447607694193721, 'train/value_loss': 0.15985889034345746, 'hours': 0.4113883304595948, 'frames': 7864320, 'eval/vs_baseline/avg_R': 0.369140625, 'eval/vs_baseline/win_rate': 0.6318359375, 'eval/vs_baseline/draw_rate': 0.10546875, 'eval/vs_baseline/lose_rate': 0.2626953125}
+{'iteration': 31, 'train/policy_loss': 0.7753479033708572, 'train/value_loss': 0.14656917238608003, 'hours': 0.4247107517719269, 'frames': 8126464}
+{'iteration': 32, 'train/policy_loss': 0.7327987449243665, 'train/value_loss': 0.11923569056671113, 'hours': 0.4380024400022295, 'frames': 8388608}
+{'iteration': 33, 'train/policy_loss': 0.787710452452302, 'train/value_loss': 0.15702584409154952, 'hours': 0.4513112086057663, 'frames': 8650752}
+{'iteration': 34, 'train/policy_loss': 0.6994711607694626, 'train/value_loss': 0.09016912104561925, 'hours': 0.4646094066566891, 'frames': 8912896}
+{'iteration': 35, 'train/policy_loss': 0.6742668794468045, 'train/value_loss': 0.13647449389100075, 'hours': 0.4779126793808407, 'frames': 9175040, 'eval/vs_baseline/avg_R': 0.3642578125, 'eval/vs_baseline/win_rate': 0.615234375, 'eval/vs_baseline/draw_rate': 0.1337890625, 'eval/vs_baseline/lose_rate': 0.2509765625}
+{'iteration': 36, 'train/policy_loss': 0.6243018070235848, 'train/value_loss': 0.10855142236687243, 'hours': 0.4912026188108656, 'frames': 9437184}
+{'iteration': 37, 'train/policy_loss': 0.6677007162943482, 'train/value_loss': 0.0983819211833179, 'hours': 0.5045074092679553, 'frames': 9699328}
+{'iteration': 38, 'train/policy_loss': 0.6438332386314869, 'train/value_loss': 0.12117704120464623, 'hours': 0.5178256512350506, 'frames': 9961472}
+{'iteration': 39, 'train/policy_loss': 0.6092027425765991, 'train/value_loss': 0.09738698753062636, 'hours': 0.5311288638247385, 'frames': 10223616}
+{'iteration': 40, 'train/policy_loss': 0.6290032118558884, 'train/value_loss': 0.11439939506817609, 'hours': 0.5444362758265602, 'frames': 10485760, 'eval/vs_baseline/avg_R': 0.4736328125, 'eval/vs_baseline/win_rate': 0.673828125, 'eval/vs_baseline/draw_rate': 0.1259765625, 'eval/vs_baseline/lose_rate': 0.2001953125}
+{'iteration': 41, 'train/policy_loss': 0.6269333763048053, 'train/value_loss': 0.1157724903896451, 'hours': 0.557775501145257, 'frames': 10747904}
+{'iteration': 42, 'train/policy_loss': 0.5669702859595418, 'train/value_loss': 0.09854234894737601, 'hours': 0.5710680372185178, 'frames': 11010048}
+{'iteration': 43, 'train/policy_loss': 0.5006316318176687, 'train/value_loss': 0.07092429080512375, 'hours': 0.5843798049290976, 'frames': 11272192}
+{'iteration': 44, 'train/policy_loss': 0.5672279438003898, 'train/value_loss': 0.11115871125366539, 'hours': 0.5976784448491204, 'frames': 11534336}
+{'iteration': 45, 'train/policy_loss': 0.562860750593245, 'train/value_loss': 0.1044402684783563, 'hours': 0.6109930426544614, 'frames': 11796480, 'eval/vs_baseline/avg_R': 0.416015625, 'eval/vs_baseline/win_rate': 0.63671875, 'eval/vs_baseline/draw_rate': 0.142578125, 'eval/vs_baseline/lose_rate': 0.220703125}
+{'iteration': 46, 'train/policy_loss': 0.6759643200784922, 'train/value_loss': 0.14638821920379996, 'hours': 0.6242949086427689, 'frames': 12058624}
+{'iteration': 47, 'train/policy_loss': 0.6926005547866225, 'train/value_loss': 0.14796147029846907, 'hours': 0.6375934037235049, 'frames': 12320768}
+{'iteration': 48, 'train/policy_loss': 0.5802845070138574, 'train/value_loss': 0.08675780321937054, 'hours': 0.6509030275212395, 'frames': 12582912}
+{'iteration': 49, 'train/policy_loss': 0.6844808300957084, 'train/value_loss': 0.14596601319499314, 'hours': 0.664214288989703, 'frames': 12845056}
+{'iteration': 50, 'train/policy_loss': 0.7063299613073468, 'train/value_loss': 0.13272076821886003, 'hours': 0.6775224658515719, 'frames': 13107200, 'eval/vs_baseline/avg_R': 0.40234375, 'eval/vs_baseline/win_rate': 0.6376953125, 'eval/vs_baseline/draw_rate': 0.126953125, 'eval/vs_baseline/lose_rate': 0.2353515625}
+{'iteration': 51, 'train/policy_loss': 0.7099680611863732, 'train/value_loss': 0.11062297038733959, 'hours': 0.6908339505063164, 'frames': 13369344}
+{'iteration': 52, 'train/policy_loss': 0.6115171397104859, 'train/value_loss': 0.13671402633190155, 'hours': 0.7041243805487951, 'frames': 13631488}
+{'iteration': 53, 'train/policy_loss': 0.6025878489017487, 'train/value_loss': 0.14341300493106246, 'hours': 0.7174219668573804, 'frames': 13893632}
+{'iteration': 54, 'train/policy_loss': 0.6347657395526767, 'train/value_loss': 0.14962176140397787, 'hours': 0.7307214678658379, 'frames': 14155776}
+{'iteration': 55, 'train/policy_loss': 0.6824528872966766, 'train/value_loss': 0.17303189495578408, 'hours': 0.7440243748823802, 'frames': 14417920, 'eval/vs_baseline/avg_R': 0.3486328125, 'eval/vs_baseline/win_rate': 0.630859375, 'eval/vs_baseline/draw_rate': 0.0869140625, 'eval/vs_baseline/lose_rate': 0.2822265625}
+{'iteration': 56, 'train/policy_loss': 0.7029331102967262, 'train/value_loss': 0.1959136533550918, 'hours': 0.7573280010620753, 'frames': 14680064}
+{'iteration': 57, 'train/policy_loss': 0.6490528509020805, 'train/value_loss': 0.20320527884177864, 'hours': 0.7706340277194977, 'frames': 14942208}
+{'iteration': 58, 'train/policy_loss': 0.6653439495712519, 'train/value_loss': 0.1887124537024647, 'hours': 0.7839310755332312, 'frames': 15204352}
+{'iteration': 59, 'train/policy_loss': 0.5987125793471932, 'train/value_loss': 0.16050233342684805, 'hours': 0.797228016389741, 'frames': 15466496}
+{'iteration': 60, 'train/policy_loss': 0.5423577222973108, 'train/value_loss': 0.16282240115106106, 'hours': 0.8105336483981875, 'frames': 15728640, 'eval/vs_baseline/avg_R': 0.439453125, 'eval/vs_baseline/win_rate': 0.6689453125, 'eval/vs_baseline/draw_rate': 0.1015625, 'eval/vs_baseline/lose_rate': 0.2294921875}
+{'iteration': 61, 'train/policy_loss': 0.5596397891640663, 'train/value_loss': 0.11678651801776141, 'hours': 0.823845591346423, 'frames': 15990784}
+{'iteration': 62, 'train/policy_loss': 0.576188275590539, 'train/value_loss': 0.10857340053189546, 'hours': 0.8371654717127484, 'frames': 16252928}
+{'iteration': 63, 'train/policy_loss': 0.6209975900128484, 'train/value_loss': 0.1355309102218598, 'hours': 0.8504666917191613, 'frames': 16515072}
+{'iteration': 64, 'train/policy_loss': 0.6138859819620848, 'train/value_loss': 0.09518539940472692, 'hours': 0.8637670891814764, 'frames': 16777216}
+{'iteration': 65, 'train/policy_loss': 0.6261792331933975, 'train/value_loss': 0.10342728800605983, 'hours': 0.8770849312676325, 'frames': 17039360, 'eval/vs_baseline/avg_R': 0.462890625, 'eval/vs_baseline/win_rate': 0.6630859375, 'eval/vs_baseline/draw_rate': 0.13671875, 'eval/vs_baseline/lose_rate': 0.2001953125}
+{'iteration': 66, 'train/policy_loss': 0.6412060866132379, 'train/value_loss': 0.1253019121941179, 'hours': 0.8903765928745271, 'frames': 17301504}
+{'iteration': 67, 'train/policy_loss': 0.657645283266902, 'train/value_loss': 0.12436542648356408, 'hours': 0.9036780403057735, 'frames': 17563648}
+{'iteration': 68, 'train/policy_loss': 0.652145286090672, 'train/value_loss': 0.1515271896496415, 'hours': 0.9169884037971497, 'frames': 17825792}
+{'iteration': 69, 'train/policy_loss': 0.5939850537106395, 'train/value_loss': 0.12349679961334914, 'hours': 0.9302920101748573, 'frames': 18087936}
+{'iteration': 70, 'train/policy_loss': 0.5503494348376989, 'train/value_loss': 0.1131605947157368, 'hours': 0.943585284948349, 'frames': 18350080, 'eval/vs_baseline/avg_R': 0.5400390625, 'eval/vs_baseline/win_rate': 0.71875, 'eval/vs_baseline/draw_rate': 0.1025390625, 'eval/vs_baseline/lose_rate': 0.1787109375}
+{'iteration': 71, 'train/policy_loss': 0.6437489101663232, 'train/value_loss': 0.13667862419970334, 'hours': 0.9569175161918004, 'frames': 18612224}
+{'iteration': 72, 'train/policy_loss': 0.565816699527204, 'train/value_loss': 0.14905029023066163, 'hours': 0.9702204429441028, 'frames': 18874368}
+{'iteration': 73, 'train/policy_loss': 0.5755929797887802, 'train/value_loss': 0.10034343705046922, 'hours': 0.9835203825102912, 'frames': 19136512}
+{'iteration': 74, 'train/policy_loss': 0.54924251511693, 'train/value_loss': 0.1338717215694487, 'hours': 0.9968136258257759, 'frames': 19398656}
+{'iteration': 75, 'train/policy_loss': 0.5195065438747406, 'train/value_loss': 0.10890416114125401, 'hours': 1.0101158287790086, 'frames': 19660800, 'eval/vs_baseline/avg_R': 0.5126953125, 'eval/vs_baseline/win_rate': 0.68359375, 'eval/vs_baseline/draw_rate': 0.1455078125, 'eval/vs_baseline/lose_rate': 0.1708984375}
+{'iteration': 76, 'train/policy_loss': 0.6069441130384803, 'train/value_loss': 0.1678270697593689, 'hours': 1.023436628712548, 'frames': 19922944}
+{'iteration': 77, 'train/policy_loss': 0.6282104821875691, 'train/value_loss': 0.16610012808814645, 'hours': 1.0367310509416792, 'frames': 20185088}
+{'iteration': 78, 'train/policy_loss': 0.5852880729362369, 'train/value_loss': 0.17212133156135678, 'hours': 1.0500307415591346, 'frames': 20447232}
+{'iteration': 79, 'train/policy_loss': 0.6118429284542799, 'train/value_loss': 0.17853002157062292, 'hours': 1.0633277592394086, 'frames': 20709376}
+{'iteration': 80, 'train/policy_loss': 0.7198589397594333, 'train/value_loss': 0.1657175524160266, 'hours': 1.0766201190153757, 'frames': 20971520, 'eval/vs_baseline/avg_R': 0.466796875, 'eval/vs_baseline/win_rate': 0.6767578125, 'eval/vs_baseline/draw_rate': 0.11328125, 'eval/vs_baseline/lose_rate': 0.2099609375}
+{'iteration': 81, 'train/policy_loss': 0.7024783855304122, 'train/value_loss': 0.14796482329256833, 'hours': 1.0899327871534559, 'frames': 21233664}
+{'iteration': 82, 'train/policy_loss': 0.5911860670894384, 'train/value_loss': 0.13454924849793315, 'hours': 1.1032273946205775, 'frames': 21495808}
+{'iteration': 83, 'train/policy_loss': 0.5417002225294709, 'train/value_loss': 0.1356600800063461, 'hours': 1.116529717511601, 'frames': 21757952}
+{'iteration': 84, 'train/policy_loss': 0.4848571512848139, 'train/value_loss': 0.09547520102933049, 'hours': 1.1298256758186551, 'frames': 22020096}
+{'iteration': 85, 'train/policy_loss': 0.4914683769457042, 'train/value_loss': 0.10141376289539039, 'hours': 1.1431131100654601, 'frames': 22282240, 'eval/vs_baseline/avg_R': 0.5224609375, 'eval/vs_baseline/win_rate': 0.7138671875, 'eval/vs_baseline/draw_rate': 0.0947265625, 'eval/vs_baseline/lose_rate': 0.19140625}
+{'iteration': 86, 'train/policy_loss': 0.5702246213331819, 'train/value_loss': 0.17993937293067575, 'hours': 1.1564142193396885, 'frames': 22544384}
+{'iteration': 87, 'train/policy_loss': 0.5452099787071347, 'train/value_loss': 0.12273612222634256, 'hours': 1.1697192335791056, 'frames': 22806528}
+{'iteration': 88, 'train/policy_loss': 0.47018370730802417, 'train/value_loss': 0.11284990143030882, 'hours': 1.1830213840140233, 'frames': 23068672}
+{'iteration': 89, 'train/policy_loss': 0.3778722840361297, 'train/value_loss': 0.06220496172318235, 'hours': 1.1963177129957407, 'frames': 23330816}
+{'iteration': 90, 'train/policy_loss': 0.36429582443088293, 'train/value_loss': 0.07927262003067881, 'hours': 1.2096175826258126, 'frames': 23592960, 'eval/vs_baseline/avg_R': 0.4296875, 'eval/vs_baseline/win_rate': 0.6533203125, 'eval/vs_baseline/draw_rate': 0.123046875, 'eval/vs_baseline/lose_rate': 0.2236328125}
+{'iteration': 91, 'train/policy_loss': 0.3421124196611345, 'train/value_loss': 0.07977877231314778, 'hours': 1.2229117280244823, 'frames': 23855104}
+{'iteration': 92, 'train/policy_loss': 0.3567219050601125, 'train/value_loss': 0.07254065026063472, 'hours': 1.2362110008133778, 'frames': 24117248}
+{'iteration': 93, 'train/policy_loss': 0.42698865151032805, 'train/value_loss': 0.08054428000468761, 'hours': 1.249506129953596, 'frames': 24379392}
+{'iteration': 94, 'train/policy_loss': 0.37520521180704236, 'train/value_loss': 0.08416093548294157, 'hours': 1.2628212841351822, 'frames': 24641536}
+{'iteration': 95, 'train/policy_loss': 0.32273755641654134, 'train/value_loss': 0.06364342971937731, 'hours': 1.2761447497208909, 'frames': 24903680, 'eval/vs_baseline/avg_R': 0.509765625, 'eval/vs_baseline/win_rate': 0.7021484375, 'eval/vs_baseline/draw_rate': 0.10546875, 'eval/vs_baseline/lose_rate': 0.1923828125}
+{'iteration': 96, 'train/policy_loss': 0.2710378454066813, 'train/value_loss': 0.04581140383379534, 'hours': 1.2894486694203477, 'frames': 25165824}
+{'iteration': 97, 'train/policy_loss': 0.3402715101838112, 'train/value_loss': 0.07254622818436474, 'hours': 1.302745719088448, 'frames': 25427968}
+{'iteration': 98, 'train/policy_loss': 0.30270901694893837, 'train/value_loss': 0.05033576168352738, 'hours': 1.3160506153768958, 'frames': 25690112}
+{'iteration': 99, 'train/policy_loss': 0.3298602318391204, 'train/value_loss': 0.06838414480444044, 'hours': 1.3294070930613406, 'frames': 25952256}
+{'iteration': 100, 'train/policy_loss': 0.3252636273391545, 'train/value_loss': 0.04739772347966209, 'hours': 1.3427050277921884, 'frames': 26214400, 'eval/vs_baseline/avg_R': 0.494140625, 'eval/vs_baseline/win_rate': 0.693359375, 'eval/vs_baseline/draw_rate': 0.107421875, 'eval/vs_baseline/lose_rate': 0.19921875}
+{'iteration': 101, 'train/policy_loss': 0.36218856973573565, 'train/value_loss': 0.051447760488372296, 'hours': 1.3560928448703549, 'frames': 26476544}
+{'iteration': 102, 'train/policy_loss': 0.577516034245491, 'train/value_loss': 0.10963733098469675, 'hours': 1.3693854240576422, 'frames': 26738688}
+{'iteration': 103, 'train/policy_loss': 0.5450887009501457, 'train/value_loss': 0.08012960688211024, 'hours': 1.3826821777555673, 'frames': 27000832}
+{'iteration': 104, 'train/policy_loss': 0.4758145813830197, 'train/value_loss': 0.0728616378037259, 'hours': 1.3959865572055177, 'frames': 27262976}
+{'iteration': 105, 'train/policy_loss': 0.35094378469511867, 'train/value_loss': 0.05850346334045753, 'hours': 1.40928306751781, 'frames': 27525120, 'eval/vs_baseline/avg_R': 0.525390625, 'eval/vs_baseline/win_rate': 0.69921875, 'eval/vs_baseline/draw_rate': 0.126953125, 'eval/vs_baseline/lose_rate': 0.173828125}
+{'iteration': 106, 'train/policy_loss': 0.34609853010624647, 'train/value_loss': 0.0673750140122138, 'hours': 1.4225914348496327, 'frames': 27787264}
+{'iteration': 107, 'train/policy_loss': 0.48220429150387645, 'train/value_loss': 0.11012267565820366, 'hours': 1.4358907170428166, 'frames': 28049408}
+{'iteration': 108, 'train/policy_loss': 0.5846167197450995, 'train/value_loss': 0.14763801754452288, 'hours': 1.4491851814587906, 'frames': 28311552}
+{'iteration': 109, 'train/policy_loss': 0.6162275290116668, 'train/value_loss': 0.09381798119284213, 'hours': 1.4624791144000155, 'frames': 28573696}
+{'iteration': 110, 'train/policy_loss': 0.5695149041712284, 'train/value_loss': 0.07828577188774943, 'hours': 1.475792164338959, 'frames': 28835840, 'eval/vs_baseline/avg_R': 0.474609375, 'eval/vs_baseline/win_rate': 0.658203125, 'eval/vs_baseline/draw_rate': 0.158203125, 'eval/vs_baseline/lose_rate': 0.18359375}
+{'iteration': 111, 'train/policy_loss': 0.5338533762842417, 'train/value_loss': 0.09272343560587615, 'hours': 1.4891017418437529, 'frames': 29097984}
+{'iteration': 112, 'train/policy_loss': 0.6284954696893692, 'train/value_loss': 0.09364068042486906, 'hours': 1.5024057808187268, 'frames': 29360128}
+{'iteration': 113, 'train/policy_loss': 0.6124361352995038, 'train/value_loss': 0.13155466644093394, 'hours': 1.5157040253612726, 'frames': 29622272}
+{'iteration': 114, 'train/policy_loss': 0.551171975210309, 'train/value_loss': 0.11205972370225936, 'hours': 1.5290150265561204, 'frames': 29884416}
+{'iteration': 115, 'train/policy_loss': 0.5200969125144184, 'train/value_loss': 0.08040148427244276, 'hours': 1.5423063427872123, 'frames': 30146560, 'eval/vs_baseline/avg_R': 0.583984375, 'eval/vs_baseline/win_rate': 0.7138671875, 'eval/vs_baseline/draw_rate': 0.15625, 'eval/vs_baseline/lose_rate': 0.1298828125}
+{'iteration': 116, 'train/policy_loss': 0.4469006657600403, 'train/value_loss': 0.05957496480550617, 'hours': 1.5555948681301537, 'frames': 30408704}
+{'iteration': 117, 'train/policy_loss': 0.4032596996985376, 'train/value_loss': 0.060804257227573544, 'hours': 1.5688857579893531, 'frames': 30670848}
+{'iteration': 118, 'train/policy_loss': 0.36739486269652843, 'train/value_loss': 0.060646165744401515, 'hours': 1.582241384585698, 'frames': 30932992}
+{'iteration': 119, 'train/policy_loss': 0.44219657639041543, 'train/value_loss': 0.07163343532010913, 'hours': 1.595533519453472, 'frames': 31195136}
+{'iteration': 120, 'train/policy_loss': 0.42541971104219556, 'train/value_loss': 0.08627690467983484, 'hours': 1.608823785980542, 'frames': 31457280, 'eval/vs_baseline/avg_R': 0.4560546875, 'eval/vs_baseline/win_rate': 0.609375, 'eval/vs_baseline/draw_rate': 0.2373046875, 'eval/vs_baseline/lose_rate': 0.1533203125}
+{'iteration': 121, 'train/policy_loss': 0.41848385566845536, 'train/value_loss': 0.07872785709332675, 'hours': 1.6221419137054016, 'frames': 31719424}
+{'iteration': 122, 'train/policy_loss': 0.48886266723275185, 'train/value_loss': 0.10593050683382899, 'hours': 1.6354466693931153, 'frames': 31981568}
+{'iteration': 123, 'train/policy_loss': 0.5615387493744493, 'train/value_loss': 0.12041420058812946, 'hours': 1.6487434972657096, 'frames': 32243712}
+{'iteration': 124, 'train/policy_loss': 0.4527807920239866, 'train/value_loss': 0.09439196495804936, 'hours': 1.662035181654824, 'frames': 32505856}
+{'iteration': 125, 'train/policy_loss': 0.48606080189347267, 'train/value_loss': 0.11035531968809664, 'hours': 1.6753341952959695, 'frames': 32768000, 'eval/vs_baseline/avg_R': 0.5322265625, 'eval/vs_baseline/win_rate': 0.6708984375, 'eval/vs_baseline/draw_rate': 0.1904296875, 'eval/vs_baseline/lose_rate': 0.138671875}
+{'iteration': 126, 'train/policy_loss': 0.48209935473278165, 'train/value_loss': 0.12878961709793657, 'hours': 1.6886285332176418, 'frames': 33030144}
+{'iteration': 127, 'train/policy_loss': 0.4979380308650434, 'train/value_loss': 0.11943424143828452, 'hours': 1.701932752397325, 'frames': 33292288}
+{'iteration': 128, 'train/policy_loss': 0.4800065984018147, 'train/value_loss': 0.11702449433505535, 'hours': 1.71524513317479, 'frames': 33554432}
+{'iteration': 129, 'train/policy_loss': 0.4685368756763637, 'train/value_loss': 0.14343024394474924, 'hours': 1.7286298463741936, 'frames': 33816576}
+{'iteration': 130, 'train/policy_loss': 0.5116408406756818, 'train/value_loss': 0.14525338471867144, 'hours': 1.741942876047558, 'frames': 34078720, 'eval/vs_baseline/avg_R': 0.490234375, 'eval/vs_baseline/win_rate': 0.6494140625, 'eval/vs_baseline/draw_rate': 0.19140625, 'eval/vs_baseline/lose_rate': 0.1591796875}
+{'iteration': 131, 'train/policy_loss': 0.580295187421143, 'train/value_loss': 0.15072920406237245, 'hours': 1.755245449542999, 'frames': 34340864}
+{'iteration': 132, 'train/policy_loss': 0.584523350931704, 'train/value_loss': 0.15378203545697033, 'hours': 1.7685433302985294, 'frames': 34603008}
+{'iteration': 133, 'train/policy_loss': 0.6104765329509974, 'train/value_loss': 0.1736612601671368, 'hours': 1.7818448802497648, 'frames': 34865152}
+{'iteration': 134, 'train/policy_loss': 0.5910418210551143, 'train/value_loss': 0.16020808811299503, 'hours': 1.7952035674783915, 'frames': 35127296}
+{'iteration': 135, 'train/policy_loss': 0.5608178721740842, 'train/value_loss': 0.1460441614035517, 'hours': 1.8085036493672262, 'frames': 35389440, 'eval/vs_baseline/avg_R': 0.552734375, 'eval/vs_baseline/win_rate': 0.6728515625, 'eval/vs_baseline/draw_rate': 0.20703125, 'eval/vs_baseline/lose_rate': 0.1201171875}
+{'iteration': 136, 'train/policy_loss': 0.5638323156163096, 'train/value_loss': 0.14405951625667512, 'hours': 1.8218153485324644, 'frames': 35651584}
+{'iteration': 137, 'train/policy_loss': 0.5930164493620396, 'train/value_loss': 0.1526477294974029, 'hours': 1.8351071272955997, 'frames': 35913728}
+{'iteration': 138, 'train/policy_loss': 0.563205293379724, 'train/value_loss': 0.154769707005471, 'hours': 1.8483901797400577, 'frames': 36175872}
+{'iteration': 139, 'train/policy_loss': 0.5743955839425325, 'train/value_loss': 0.15027647791430354, 'hours': 1.861692301366064, 'frames': 36438016}
+{'iteration': 140, 'train/policy_loss': 0.5504232682287693, 'train/value_loss': 0.1519237521570176, 'hours': 1.8749932997094259, 'frames': 36700160, 'eval/vs_baseline/avg_R': 0.537109375, 'eval/vs_baseline/win_rate': 0.685546875, 'eval/vs_baseline/draw_rate': 0.166015625, 'eval/vs_baseline/lose_rate': 0.1484375}
+{'iteration': 141, 'train/policy_loss': 0.49163096491247416, 'train/value_loss': 0.11426088795997202, 'hours': 1.8882968692647084, 'frames': 36962304}
+{'iteration': 142, 'train/policy_loss': 0.5248934575356543, 'train/value_loss': 0.12478016037493944, 'hours': 1.9015934535529877, 'frames': 37224448}
+{'iteration': 143, 'train/policy_loss': 0.5268439864739776, 'train/value_loss': 0.15052608051337302, 'hours': 1.9149053065644368, 'frames': 37486592}
+{'iteration': 144, 'train/policy_loss': 0.5634424956515431, 'train/value_loss': 0.14761019870638847, 'hours': 1.9281968637969757, 'frames': 37748736}
+{'iteration': 145, 'train/policy_loss': 0.5499263852834702, 'train/value_loss': 0.12265050422865897, 'hours': 1.9415099087026382, 'frames': 38010880, 'eval/vs_baseline/avg_R': 0.58203125, 'eval/vs_baseline/win_rate': 0.7109375, 'eval/vs_baseline/draw_rate': 0.16015625, 'eval/vs_baseline/lose_rate': 0.12890625}
+{'iteration': 146, 'train/policy_loss': 0.5129896881990135, 'train/value_loss': 0.1272960896603763, 'hours': 1.9548231190443037, 'frames': 38273024}
+{'iteration': 147, 'train/policy_loss': 0.4138445253483951, 'train/value_loss': 0.08080887352116406, 'hours': 1.9681279425488576, 'frames': 38535168}
+{'iteration': 148, 'train/policy_loss': 0.5197196435183287, 'train/value_loss': 0.0965113021666184, 'hours': 1.981443036927117, 'frames': 38797312}
+{'iteration': 149, 'train/policy_loss': 0.553106851875782, 'train/value_loss': 0.09822685550898314, 'hours': 1.9947404756810927, 'frames': 39059456}
+{'iteration': 150, 'train/policy_loss': 0.5259423954412341, 'train/value_loss': 0.1356922066770494, 'hours': 2.0080375913116666, 'frames': 39321600, 'eval/vs_baseline/avg_R': 0.515625, 'eval/vs_baseline/win_rate': 0.669921875, 'eval/vs_baseline/draw_rate': 0.17578125, 'eval/vs_baseline/lose_rate': 0.154296875}
+{'iteration': 151, 'train/policy_loss': 0.4592955242842436, 'train/value_loss': 0.11066765699069947, 'hours': 2.021331427693367, 'frames': 39583744}
+{'iteration': 152, 'train/policy_loss': 0.46846810495480895, 'train/value_loss': 0.11230625165626407, 'hours': 2.034623882704311, 'frames': 39845888}
+{'iteration': 153, 'train/policy_loss': 0.5080833327956498, 'train/value_loss': 0.13825801154598594, 'hours': 2.04792019089063, 'frames': 40108032}
+{'iteration': 154, 'train/policy_loss': 0.5323122642003, 'train/value_loss': 0.1666105326730758, 'hours': 2.0612183304627734, 'frames': 40370176}
+{'iteration': 155, 'train/policy_loss': 0.49762631254270673, 'train/value_loss': 0.1436495736707002, 'hours': 2.074512364533212, 'frames': 40632320, 'eval/vs_baseline/avg_R': 0.494140625, 'eval/vs_baseline/win_rate': 0.66796875, 'eval/vs_baseline/draw_rate': 0.158203125, 'eval/vs_baseline/lose_rate': 0.173828125}
+{'iteration': 156, 'train/policy_loss': 0.40570561261847615, 'train/value_loss': 0.10996862733736634, 'hours': 2.087827660971217, 'frames': 40894464}
+{'iteration': 157, 'train/policy_loss': 0.38242209423333406, 'train/value_loss': 0.1229976317845285, 'hours': 2.101117581526438, 'frames': 41156608}
+{'iteration': 158, 'train/policy_loss': 0.43836664082482457, 'train/value_loss': 0.11387530947104096, 'hours': 2.1144107671578722, 'frames': 41418752}
+{'iteration': 159, 'train/policy_loss': 0.42791134072467685, 'train/value_loss': 0.11643752560485154, 'hours': 2.1277085849311614, 'frames': 41680896}
+{'iteration': 160, 'train/policy_loss': 0.39990219520404935, 'train/value_loss': 0.09683161810971797, 'hours': 2.140999286638366, 'frames': 41943040, 'eval/vs_baseline/avg_R': 0.546875, 'eval/vs_baseline/win_rate': 0.69140625, 'eval/vs_baseline/draw_rate': 0.1640625, 'eval/vs_baseline/lose_rate': 0.14453125}
+{'iteration': 161, 'train/policy_loss': 0.45333096478134394, 'train/value_loss': 0.11299577786121517, 'hours': 2.154289851387342, 'frames': 42205184}
+{'iteration': 162, 'train/policy_loss': 0.44453515484929085, 'train/value_loss': 0.10264926310628653, 'hours': 2.1676051928599676, 'frames': 42467328}
+{'iteration': 163, 'train/policy_loss': 0.34955689730122685, 'train/value_loss': 0.09089342609513551, 'hours': 2.180899902847078, 'frames': 42729472}
+{'iteration': 164, 'train/policy_loss': 0.3260131925344467, 'train/value_loss': 0.07553594186902046, 'hours': 2.1941956777042813, 'frames': 42991616}
+{'iteration': 165, 'train/policy_loss': 0.2625859440304339, 'train/value_loss': 0.03958809078903869, 'hours': 2.2074987233347363, 'frames': 43253760, 'eval/vs_baseline/avg_R': 0.5615234375, 'eval/vs_baseline/win_rate': 0.701171875, 'eval/vs_baseline/draw_rate': 0.1591796875, 'eval/vs_baseline/lose_rate': 0.1396484375}
+{'iteration': 166, 'train/policy_loss': 0.2925766226835549, 'train/value_loss': 0.06896440614946187, 'hours': 2.220799919101927, 'frames': 43515904}
+{'iteration': 167, 'train/policy_loss': 0.23405328718945384, 'train/value_loss': 0.05445150093873963, 'hours': 2.2340824426545036, 'frames': 43778048}
+{'iteration': 168, 'train/policy_loss': 0.16780696460045874, 'train/value_loss': 0.03195213706931099, 'hours': 2.2473634552955626, 'frames': 44040192}
+{'iteration': 169, 'train/policy_loss': 0.13089994282927364, 'train/value_loss': 0.022826454078312963, 'hours': 2.2606378402312597, 'frames': 44302336}
+{'iteration': 170, 'train/policy_loss': 0.14308445993810892, 'train/value_loss': 0.025359905615914613, 'hours': 2.2739161256286833, 'frames': 44564480, 'eval/vs_baseline/avg_R': 0.5498046875, 'eval/vs_baseline/win_rate': 0.701171875, 'eval/vs_baseline/draw_rate': 0.1474609375, 'eval/vs_baseline/lose_rate': 0.1513671875}
+{'iteration': 171, 'train/policy_loss': 0.12032440374605358, 'train/value_loss': 0.01806693075923249, 'hours': 2.2871965091758306, 'frames': 44826624}
+{'iteration': 172, 'train/policy_loss': 0.11392015183810145, 'train/value_loss': 0.01667015098792035, 'hours': 2.3004727993408842, 'frames': 45088768}
+{'iteration': 173, 'train/policy_loss': 0.11836845404468477, 'train/value_loss': 0.02007980420603417, 'hours': 2.313755006657707, 'frames': 45350912}
+{'iteration': 174, 'train/policy_loss': 0.10364245739765465, 'train/value_loss': 0.019392786896787584, 'hours': 2.327047460807695, 'frames': 45613056}
+{'iteration': 175, 'train/policy_loss': 0.10744106094352901, 'train/value_loss': 0.022615468391450122, 'hours': 2.34033046272066, 'frames': 45875200, 'eval/vs_baseline/avg_R': 0.5517578125, 'eval/vs_baseline/win_rate': 0.6953125, 'eval/vs_baseline/draw_rate': 0.1611328125, 'eval/vs_baseline/lose_rate': 0.1435546875}
+{'iteration': 176, 'train/policy_loss': 0.09224096208345145, 'train/value_loss': 0.021546613512327895, 'hours': 2.3536074015167032, 'frames': 46137344}
+{'iteration': 177, 'train/policy_loss': 0.09144400805234909, 'train/value_loss': 0.012536656504380517, 'hours': 2.3668974000877814, 'frames': 46399488}
+{'iteration': 178, 'train/policy_loss': 0.10118099511601031, 'train/value_loss': 0.013778903987258673, 'hours': 2.380178639690082, 'frames': 46661632}
+{'iteration': 179, 'train/policy_loss': 0.1535605420358479, 'train/value_loss': 0.026725249481387436, 'hours': 2.393452853163084, 'frames': 46923776}
+{'iteration': 180, 'train/policy_loss': 0.08104952680878341, 'train/value_loss': 0.007051881984807551, 'hours': 2.406717026101219, 'frames': 47185920, 'eval/vs_baseline/avg_R': 0.4755859375, 'eval/vs_baseline/win_rate': 0.6552734375, 'eval/vs_baseline/draw_rate': 0.1650390625, 'eval/vs_baseline/lose_rate': 0.1796875}
+{'iteration': 181, 'train/policy_loss': 0.09747104090638459, 'train/value_loss': 0.010937210347037762, 'hours': 2.420002446307077, 'frames': 47448064}
+{'iteration': 182, 'train/policy_loss': 0.09838790958747268, 'train/value_loss': 0.012346742747467943, 'hours': 2.433271902534697, 'frames': 47710208}
+{'iteration': 183, 'train/policy_loss': 0.11612122447695583, 'train/value_loss': 0.01584416438709013, 'hours': 2.4465496678484815, 'frames': 47972352}
+{'iteration': 184, 'train/policy_loss': 0.2279572042170912, 'train/value_loss': 0.053951079957187176, 'hours': 2.4598556602663466, 'frames': 48234496}
+{'iteration': 185, 'train/policy_loss': 0.18474620138294995, 'train/value_loss': 0.03245200135279447, 'hours': 2.473121941685677, 'frames': 48496640, 'eval/vs_baseline/avg_R': 0.5537109375, 'eval/vs_baseline/win_rate': 0.689453125, 'eval/vs_baseline/draw_rate': 0.1748046875, 'eval/vs_baseline/lose_rate': 0.1357421875}
+{'iteration': 186, 'train/policy_loss': 0.1578812301158905, 'train/value_loss': 0.023489225888624787, 'hours': 2.486413032015165, 'frames': 48758784}
+{'iteration': 187, 'train/policy_loss': 0.22741139074787498, 'train/value_loss': 0.06963303009979427, 'hours': 2.499700109230148, 'frames': 49020928}
+{'iteration': 188, 'train/policy_loss': 0.14077785448171198, 'train/value_loss': 0.01635601872112602, 'hours': 2.5129686383406327, 'frames': 49283072}
+{'iteration': 189, 'train/policy_loss': 0.19570258795283735, 'train/value_loss': 0.04090872756205499, 'hours': 2.5262804751926002, 'frames': 49545216}
+{'iteration': 190, 'train/policy_loss': 0.29489854583516717, 'train/value_loss': 0.07640090223867446, 'hours': 2.5395762722359767, 'frames': 49807360, 'eval/vs_baseline/avg_R': 0.44140625, 'eval/vs_baseline/win_rate': 0.6318359375, 'eval/vs_baseline/draw_rate': 0.177734375, 'eval/vs_baseline/lose_rate': 0.1904296875}
+{'iteration': 191, 'train/policy_loss': 0.30980399064719677, 'train/value_loss': 0.08143190643750131, 'hours': 2.5528757666879236, 'frames': 50069504}
+{'iteration': 192, 'train/policy_loss': 0.38643836276605725, 'train/value_loss': 0.09618154226336628, 'hours': 2.5661689479483503, 'frames': 50331648}
+{'iteration': 193, 'train/policy_loss': 0.4541692240163684, 'train/value_loss': 0.10434546449687332, 'hours': 2.579470538761881, 'frames': 50593792}
+{'iteration': 194, 'train/policy_loss': 0.4445920172147453, 'train/value_loss': 0.06803639966528863, 'hours': 2.592774565815926, 'frames': 50855936}
+{'iteration': 195, 'train/policy_loss': 0.4596702866256237, 'train/value_loss': 0.09729916544165462, 'hours': 2.6060670150650878, 'frames': 51118080, 'eval/vs_baseline/avg_R': 0.47265625, 'eval/vs_baseline/win_rate': 0.650390625, 'eval/vs_baseline/draw_rate': 0.171875, 'eval/vs_baseline/lose_rate': 0.177734375}
+{'iteration': 196, 'train/policy_loss': 0.36428039195016026, 'train/value_loss': 0.05550099478568882, 'hours': 2.6193642297718265, 'frames': 51380224}
+{'iteration': 197, 'train/policy_loss': 0.3390820166096091, 'train/value_loss': 0.03640487705706619, 'hours': 2.63266171389156, 'frames': 51642368}
+{'iteration': 198, 'train/policy_loss': 0.37523550307378173, 'train/value_loss': 0.06253606354584917, 'hours': 2.6459813625944992, 'frames': 51904512}
+{'iteration': 199, 'train/policy_loss': 0.3214955269359052, 'train/value_loss': 0.03864001727197319, 'hours': 2.6592820784118447, 'frames': 52166656}
+{'iteration': 200, 'train/policy_loss': 0.3489737808704376, 'train/value_loss': 0.029669749492313713, 'hours': 2.672579621209039, 'frames': 52428800, 'eval/vs_baseline/avg_R': 0.4990234375, 'eval/vs_baseline/win_rate': 0.6630859375, 'eval/vs_baseline/draw_rate': 0.1728515625, 'eval/vs_baseline/lose_rate': 0.1640625}
+{'iteration': 201, 'train/policy_loss': 0.4116061315871775, 'train/value_loss': 0.06698316207621247, 'hours': 2.6858891768587965, 'frames': 52690944}
+{'iteration': 202, 'train/policy_loss': 0.3569775871001184, 'train/value_loss': 0.03660956327803433, 'hours': 2.699181968371074, 'frames': 52953088}
+{'iteration': 203, 'train/policy_loss': 0.33122656866908073, 'train/value_loss': 0.026849929738091305, 'hours': 2.7124776521656253, 'frames': 53215232}
+{'iteration': 204, 'train/policy_loss': 0.3835710762068629, 'train/value_loss': 0.07055079354904592, 'hours': 2.725767996642325, 'frames': 53477376}
+{'iteration': 205, 'train/policy_loss': 0.46889605186879635, 'train/value_loss': 0.07707410003058612, 'hours': 2.73909134818448, 'frames': 53739520, 'eval/vs_baseline/avg_R': 0.546875, 'eval/vs_baseline/win_rate': 0.6748046875, 'eval/vs_baseline/draw_rate': 0.197265625, 'eval/vs_baseline/lose_rate': 0.1279296875}
+{'iteration': 206, 'train/policy_loss': 0.5232378393411636, 'train/value_loss': 0.11423945252317935, 'hours': 2.752387598421839, 'frames': 54001664}
+{'iteration': 207, 'train/policy_loss': 0.5981174726039171, 'train/value_loss': 0.1529149222187698, 'hours': 2.765689409838783, 'frames': 54263808}
+{'iteration': 208, 'train/policy_loss': 0.5433239508420229, 'train/value_loss': 0.13729143887758255, 'hours': 2.7789808868037333, 'frames': 54525952}
+{'iteration': 209, 'train/policy_loss': 0.5099848988465965, 'train/value_loss': 0.15663040219806135, 'hours': 2.7922813389036394, 'frames': 54788096}
+{'iteration': 210, 'train/policy_loss': 0.5671141557395458, 'train/value_loss': 0.15095056244172156, 'hours': 2.8055818228589167, 'frames': 55050240, 'eval/vs_baseline/avg_R': 0.5751953125, 'eval/vs_baseline/win_rate': 0.7138671875, 'eval/vs_baseline/draw_rate': 0.1474609375, 'eval/vs_baseline/lose_rate': 0.138671875}
+{'iteration': 211, 'train/policy_loss': 0.4840679159387946, 'train/value_loss': 0.14027863065712154, 'hours': 2.818895712428623, 'frames': 55312384}
+{'iteration': 212, 'train/policy_loss': 0.5037489766255021, 'train/value_loss': 0.1319237407296896, 'hours': 2.8322066028912865, 'frames': 55574528}
+{'iteration': 213, 'train/policy_loss': 0.5422217519953847, 'train/value_loss': 0.1435802192427218, 'hours': 2.8455129785007904, 'frames': 55836672}
+{'iteration': 214, 'train/policy_loss': 0.4644030015915632, 'train/value_loss': 0.12052461446728557, 'hours': 2.8588036913341948, 'frames': 56098816}
+{'iteration': 215, 'train/policy_loss': 0.5007878541946411, 'train/value_loss': 0.15302567090839148, 'hours': 2.8721060225698682, 'frames': 56360960, 'eval/vs_baseline/avg_R': 0.5888671875, 'eval/vs_baseline/win_rate': 0.7314453125, 'eval/vs_baseline/draw_rate': 0.1259765625, 'eval/vs_baseline/lose_rate': 0.142578125}
+{'iteration': 216, 'train/policy_loss': 0.3725954941473901, 'train/value_loss': 0.08338330045808107, 'hours': 2.88541130900383, 'frames': 56623104}
+{'iteration': 217, 'train/policy_loss': 0.28002832597121596, 'train/value_loss': 0.06595297710737213, 'hours': 2.8987074822849697, 'frames': 56885248}
+{'iteration': 218, 'train/policy_loss': 0.25200939271599054, 'train/value_loss': 0.050009784928988665, 'hours': 2.9119911548164157, 'frames': 57147392}
+{'iteration': 219, 'train/policy_loss': 0.4359035175293684, 'train/value_loss': 0.10996773315127939, 'hours': 2.925303674671385, 'frames': 57409536}
+{'iteration': 220, 'train/policy_loss': 0.4170245942659676, 'train/value_loss': 0.11167748423758894, 'hours': 2.938599209189415, 'frames': 57671680, 'eval/vs_baseline/avg_R': 0.5986328125, 'eval/vs_baseline/win_rate': 0.74609375, 'eval/vs_baseline/draw_rate': 0.1064453125, 'eval/vs_baseline/lose_rate': 0.1474609375}
+{'iteration': 221, 'train/policy_loss': 0.40497898077592254, 'train/value_loss': 0.12179084168747067, 'hours': 2.951904948817359, 'frames': 57933824}
+{'iteration': 222, 'train/policy_loss': 0.43642990104854107, 'train/value_loss': 0.12307212105952203, 'hours': 2.965214020477401, 'frames': 58195968}
+{'iteration': 223, 'train/policy_loss': 0.5736321229487658, 'train/value_loss': 0.13767917780205607, 'hours': 2.9785126949018905, 'frames': 58458112}
+{'iteration': 224, 'train/policy_loss': 0.5462823798879981, 'train/value_loss': 0.1485600839368999, 'hours': 2.9918011072609163, 'frames': 58720256}
+{'iteration': 225, 'train/policy_loss': 0.5475812274962664, 'train/value_loss': 0.1485167033970356, 'hours': 3.005101726783647, 'frames': 58982400, 'eval/vs_baseline/avg_R': 0.615234375, 'eval/vs_baseline/win_rate': 0.7373046875, 'eval/vs_baseline/draw_rate': 0.140625, 'eval/vs_baseline/lose_rate': 0.1220703125}
+{'iteration': 226, 'train/policy_loss': 0.501405615825206, 'train/value_loss': 0.1271774775814265, 'hours': 3.0184024249845085, 'frames': 59244544}
+{'iteration': 227, 'train/policy_loss': 0.5494924383237958, 'train/value_loss': 0.13226065994240344, 'hours': 3.0317004319032037, 'frames': 59506688}
+{'iteration': 228, 'train/policy_loss': 0.5290802037343383, 'train/value_loss': 0.10292265203315765, 'hours': 3.0450166516171566, 'frames': 59768832}
+{'iteration': 229, 'train/policy_loss': 0.5035239104181528, 'train/value_loss': 0.12333450641017407, 'hours': 3.058316514756945, 'frames': 60030976}
+{'iteration': 230, 'train/policy_loss': 0.4912025253288448, 'train/value_loss': 0.14413333870470524, 'hours': 3.0716150527530255, 'frames': 60293120, 'eval/vs_baseline/avg_R': 0.521484375, 'eval/vs_baseline/win_rate': 0.671875, 'eval/vs_baseline/draw_rate': 0.177734375, 'eval/vs_baseline/lose_rate': 0.150390625}
+{'iteration': 231, 'train/policy_loss': 0.4431794071570039, 'train/value_loss': 0.12376637966372073, 'hours': 3.0849181627564968, 'frames': 60555264}
+{'iteration': 232, 'train/policy_loss': 0.4778490802273154, 'train/value_loss': 0.12856677267700434, 'hours': 3.0982101028495372, 'frames': 60817408}
+{'iteration': 233, 'train/policy_loss': 0.5016801776364446, 'train/value_loss': 0.13581970147788525, 'hours': 3.1115176014105486, 'frames': 61079552}
+{'iteration': 234, 'train/policy_loss': 0.4006397342309356, 'train/value_loss': 0.1386618372052908, 'hours': 3.124833347201348, 'frames': 61341696}
+{'iteration': 235, 'train/policy_loss': 0.4174706293269992, 'train/value_loss': 0.16067969310097396, 'hours': 3.1381362057394457, 'frames': 61603840, 'eval/vs_baseline/avg_R': 0.5830078125, 'eval/vs_baseline/win_rate': 0.7001953125, 'eval/vs_baseline/draw_rate': 0.1826171875, 'eval/vs_baseline/lose_rate': 0.1171875}
+{'iteration': 236, 'train/policy_loss': 0.4106380259618163, 'train/value_loss': 0.1549240353051573, 'hours': 3.151442093584273, 'frames': 61865984}
+{'iteration': 237, 'train/policy_loss': 0.41386364214122295, 'train/value_loss': 0.13154741248581558, 'hours': 3.164737658699354, 'frames': 62128128}
+{'iteration': 238, 'train/policy_loss': 0.372992851305753, 'train/value_loss': 0.12352949485648423, 'hours': 3.1780406076378296, 'frames': 62390272}
+{'iteration': 239, 'train/policy_loss': 0.4749550288543105, 'train/value_loss': 0.15354980155825615, 'hours': 3.191338664558199, 'frames': 62652416}
+{'iteration': 240, 'train/policy_loss': 0.41458282247185707, 'train/value_loss': 0.1445673550479114, 'hours': 3.2046436623732255, 'frames': 62914560, 'eval/vs_baseline/avg_R': 0.6083984375, 'eval/vs_baseline/win_rate': 0.7255859375, 'eval/vs_baseline/draw_rate': 0.1572265625, 'eval/vs_baseline/lose_rate': 0.1171875}
+{'iteration': 241, 'train/policy_loss': 0.48551548970863223, 'train/value_loss': 0.15655654179863632, 'hours': 3.217939636972216, 'frames': 63176704}
+{'iteration': 242, 'train/policy_loss': 0.5828977264463902, 'train/value_loss': 0.17598912538960576, 'hours': 3.2312477843628997, 'frames': 63438848}
+{'iteration': 243, 'train/policy_loss': 0.46118115074932575, 'train/value_loss': 0.09975560940802097, 'hours': 3.244539005623924, 'frames': 63700992}
+{'iteration': 244, 'train/policy_loss': 0.46359006268903613, 'train/value_loss': 0.08846968656871468, 'hours': 3.2578313993083112, 'frames': 63963136}
+{'iteration': 245, 'train/policy_loss': 0.36212066328153014, 'train/value_loss': 0.057816390704829246, 'hours': 3.2711350609858836, 'frames': 64225280, 'eval/vs_baseline/avg_R': 0.564453125, 'eval/vs_baseline/win_rate': 0.6826171875, 'eval/vs_baseline/draw_rate': 0.19921875, 'eval/vs_baseline/lose_rate': 0.1181640625}
+{'iteration': 246, 'train/policy_loss': 0.3955206526443362, 'train/value_loss': 0.0893512818729505, 'hours': 3.284448220531146, 'frames': 64487424}
+{'iteration': 247, 'train/policy_loss': 0.3204410821199417, 'train/value_loss': 0.06025105156004429, 'hours': 3.2977373549673294, 'frames': 64749568}
+{'iteration': 248, 'train/policy_loss': 0.29717338737100363, 'train/value_loss': 0.05683425982715562, 'hours': 3.311020809809367, 'frames': 65011712}
+{'iteration': 249, 'train/policy_loss': 0.2725241775624454, 'train/value_loss': 0.050230084743816406, 'hours': 3.324317748083009, 'frames': 65273856}
+{'iteration': 250, 'train/policy_loss': 0.23348930501379073, 'train/value_loss': 0.042824823467526585, 'hours': 3.337600602375137, 'frames': 65536000, 'eval/vs_baseline/avg_R': 0.5654296875, 'eval/vs_baseline/win_rate': 0.7138671875, 'eval/vs_baseline/draw_rate': 0.1376953125, 'eval/vs_baseline/lose_rate': 0.1484375}
+{'iteration': 251, 'train/policy_loss': 0.18606530386023223, 'train/value_loss': 0.028098710696212947, 'hours': 3.3508827841281894, 'frames': 65798144}
+{'iteration': 252, 'train/policy_loss': 0.18260253896005452, 'train/value_loss': 0.03564702003495768, 'hours': 3.3641860686408154, 'frames': 66060288}
+{'iteration': 253, 'train/policy_loss': 0.1718753802124411, 'train/value_loss': 0.025187571649439633, 'hours': 3.3774616665310333, 'frames': 66322432}
+{'iteration': 254, 'train/policy_loss': 0.1646054363809526, 'train/value_loss': 0.014479587916866876, 'hours': 3.390748932162921, 'frames': 66584576}
+{'iteration': 255, 'train/policy_loss': 0.1607703478075564, 'train/value_loss': 0.011237017009989358, 'hours': 3.4040334756506816, 'frames': 66846720, 'eval/vs_baseline/avg_R': 0.544921875, 'eval/vs_baseline/win_rate': 0.69140625, 'eval/vs_baseline/draw_rate': 0.162109375, 'eval/vs_baseline/lose_rate': 0.146484375}
+{'iteration': 256, 'train/policy_loss': 0.21450703055597842, 'train/value_loss': 0.022837239113869146, 'hours': 3.417320096757677, 'frames': 67108864}
+{'iteration': 257, 'train/policy_loss': 0.43534354493021965, 'train/value_loss': 0.09489576192572713, 'hours': 3.430621589091089, 'frames': 67371008}
+{'iteration': 258, 'train/policy_loss': 0.4784327154047787, 'train/value_loss': 0.11904622579459101, 'hours': 3.443915528787507, 'frames': 67633152}
+{'iteration': 259, 'train/policy_loss': 0.44894508458673954, 'train/value_loss': 0.12492744135670364, 'hours': 3.4572189053561955, 'frames': 67895296}
+{'iteration': 260, 'train/policy_loss': 0.46041692048311234, 'train/value_loss': 0.1273413449525833, 'hours': 3.470522418551975, 'frames': 68157440, 'eval/vs_baseline/avg_R': 0.5390625, 'eval/vs_baseline/win_rate': 0.65625, 'eval/vs_baseline/draw_rate': 0.2265625, 'eval/vs_baseline/lose_rate': 0.1171875}
+{'iteration': 261, 'train/policy_loss': 0.4448290807195008, 'train/value_loss': 0.17206136020831764, 'hours': 3.483838107188543, 'frames': 68419584}
+{'iteration': 262, 'train/policy_loss': 0.38523189490661025, 'train/value_loss': 0.08830944180954248, 'hours': 3.4971442615985873, 'frames': 68681728}
+{'iteration': 263, 'train/policy_loss': 0.5010202531702816, 'train/value_loss': 0.17484062118455768, 'hours': 3.5104401938120526, 'frames': 68943872}
+{'iteration': 264, 'train/policy_loss': 0.500661174301058, 'train/value_loss': 0.14986005309037864, 'hours': 3.523737779789501, 'frames': 69206016}
+{'iteration': 265, 'train/policy_loss': 0.4306986555457115, 'train/value_loss': 0.11268002656288445, 'hours': 3.537034897340669, 'frames': 69468160, 'eval/vs_baseline/avg_R': 0.5751953125, 'eval/vs_baseline/win_rate': 0.6884765625, 'eval/vs_baseline/draw_rate': 0.1982421875, 'eval/vs_baseline/lose_rate': 0.11328125}
+{'iteration': 266, 'train/policy_loss': 0.427396765910089, 'train/value_loss': 0.08915653522126377, 'hours': 3.5503347774346676, 'frames': 69730304}
+{'iteration': 267, 'train/policy_loss': 0.375497052911669, 'train/value_loss': 0.07905609277077019, 'hours': 3.5636382567220273, 'frames': 69992448}
+{'iteration': 268, 'train/policy_loss': 0.3738338705152273, 'train/value_loss': 0.04885304585332051, 'hours': 3.5769313678476555, 'frames': 70254592}
+{'iteration': 269, 'train/policy_loss': 0.36681619519367814, 'train/value_loss': 0.056832765869330615, 'hours': 3.5902167002360037, 'frames': 70516736}
+{'iteration': 270, 'train/policy_loss': 0.4263544203713536, 'train/value_loss': 0.09225707687437534, 'hours': 3.6035156400998445, 'frames': 70778880, 'eval/vs_baseline/avg_R': 0.5810546875, 'eval/vs_baseline/win_rate': 0.7216796875, 'eval/vs_baseline/draw_rate': 0.1376953125, 'eval/vs_baseline/lose_rate': 0.140625}
+{'iteration': 271, 'train/policy_loss': 0.3958115982823074, 'train/value_loss': 0.07198804209474474, 'hours': 3.616802140540548, 'frames': 71041024}
+{'iteration': 272, 'train/policy_loss': 0.40616638073697686, 'train/value_loss': 0.09636509558185935, 'hours': 3.6301042451461165, 'frames': 71303168}
+{'iteration': 273, 'train/policy_loss': 0.39476404106244445, 'train/value_loss': 0.10129948484245688, 'hours': 3.643395681447454, 'frames': 71565312}
+{'iteration': 274, 'train/policy_loss': 0.4085012343712151, 'train/value_loss': 0.10454792773816735, 'hours': 3.6566956690947223, 'frames': 71827456}
+{'iteration': 275, 'train/policy_loss': 0.45859716227278113, 'train/value_loss': 0.14218459324911237, 'hours': 3.669986314707333, 'frames': 72089600, 'eval/vs_baseline/avg_R': 0.6162109375, 'eval/vs_baseline/win_rate': 0.7412109375, 'eval/vs_baseline/draw_rate': 0.1337890625, 'eval/vs_baseline/lose_rate': 0.125}
+{'iteration': 276, 'train/policy_loss': 0.4782573231495917, 'train/value_loss': 0.1740076474379748, 'hours': 3.6833026306496732, 'frames': 72351744}
+{'iteration': 277, 'train/policy_loss': 0.4596693618223071, 'train/value_loss': 0.1730677701998502, 'hours': 3.6966047555208212, 'frames': 72613888}
+{'iteration': 278, 'train/policy_loss': 0.4130574008449912, 'train/value_loss': 0.11754708923399448, 'hours': 3.709905965460672, 'frames': 72876032}
+{'iteration': 279, 'train/policy_loss': 0.47708432050421834, 'train/value_loss': 0.1173154158750549, 'hours': 3.72325323065122, 'frames': 73138176}
+{'iteration': 280, 'train/policy_loss': 0.3802024251781404, 'train/value_loss': 0.03643560770433396, 'hours': 3.736547808845838, 'frames': 73400320, 'eval/vs_baseline/avg_R': 0.6328125, 'eval/vs_baseline/win_rate': 0.759765625, 'eval/vs_baseline/draw_rate': 0.11328125, 'eval/vs_baseline/lose_rate': 0.126953125}
+{'iteration': 281, 'train/policy_loss': 0.505475256126374, 'train/value_loss': 0.10292086109984666, 'hours': 3.749849151770274, 'frames': 73662464}
+{'iteration': 282, 'train/policy_loss': 0.4869080511853099, 'train/value_loss': 0.13037528772838414, 'hours': 3.7631467972861397, 'frames': 73924608}
+{'iteration': 283, 'train/policy_loss': 0.5224392730742693, 'train/value_loss': 0.13445270236115903, 'hours': 3.776446193721559, 'frames': 74186752}
+{'iteration': 284, 'train/policy_loss': 0.5445435717701912, 'train/value_loss': 0.16490165400318801, 'hours': 3.789742035932011, 'frames': 74448896}
+{'iteration': 285, 'train/policy_loss': 0.5474302843213081, 'train/value_loss': 0.16245093708857894, 'hours': 3.803050749765502, 'frames': 74711040, 'eval/vs_baseline/avg_R': 0.6201171875, 'eval/vs_baseline/win_rate': 0.74609375, 'eval/vs_baseline/draw_rate': 0.1279296875, 'eval/vs_baseline/lose_rate': 0.1259765625}
+{'iteration': 286, 'train/policy_loss': 0.5752345025539398, 'train/value_loss': 0.18097929167561233, 'hours': 3.8163618591758937, 'frames': 74973184}
+{'iteration': 287, 'train/policy_loss': 0.5208888188935816, 'train/value_loss': 0.16921679861843586, 'hours': 3.8296933821174832, 'frames': 75235328}
+{'iteration': 288, 'train/policy_loss': 0.5021936893463135, 'train/value_loss': 0.16594315296970308, 'hours': 3.8429953806930115, 'frames': 75497472}
+{'iteration': 289, 'train/policy_loss': 0.487304266076535, 'train/value_loss': 0.1532996401656419, 'hours': 3.856296864085727, 'frames': 75759616}
+{'iteration': 290, 'train/policy_loss': 0.5550000499933958, 'train/value_loss': 0.1533793220296502, 'hours': 3.869609981179237, 'frames': 76021760, 'eval/vs_baseline/avg_R': 0.6826171875, 'eval/vs_baseline/win_rate': 0.791015625, 'eval/vs_baseline/draw_rate': 0.1005859375, 'eval/vs_baseline/lose_rate': 0.1083984375}
+{'iteration': 291, 'train/policy_loss': 0.5338567448779941, 'train/value_loss': 0.1472001678775996, 'hours': 3.8829202594359713, 'frames': 76283904}
+{'iteration': 292, 'train/policy_loss': 0.5067839585244656, 'train/value_loss': 0.15219779475592077, 'hours': 3.896217966543303, 'frames': 76546048}
+{'iteration': 293, 'train/policy_loss': 0.46582861617207527, 'train/value_loss': 0.1415657780598849, 'hours': 3.909525910682148, 'frames': 76808192}
+{'iteration': 294, 'train/policy_loss': 0.4758569938130677, 'train/value_loss': 0.17366575100459158, 'hours': 3.9228206533193584, 'frames': 77070336}
+{'iteration': 295, 'train/policy_loss': 0.5365377054549754, 'train/value_loss': 0.17011552350595593, 'hours': 3.9361168205738064, 'frames': 77332480, 'eval/vs_baseline/avg_R': 0.6396484375, 'eval/vs_baseline/win_rate': 0.7626953125, 'eval/vs_baseline/draw_rate': 0.1142578125, 'eval/vs_baseline/lose_rate': 0.123046875}
+{'iteration': 296, 'train/policy_loss': 0.5092860888689756, 'train/value_loss': 0.1839472809806466, 'hours': 3.9494184402624763, 'frames': 77594624}
+{'iteration': 297, 'train/policy_loss': 0.4397600619122386, 'train/value_loss': 0.1498418056871742, 'hours': 3.9627170231607223, 'frames': 77856768}
+{'iteration': 298, 'train/policy_loss': 0.47189856832847, 'train/value_loss': 0.1614459315314889, 'hours': 3.976012248860465, 'frames': 78118912}
+{'iteration': 299, 'train/policy_loss': 0.4669615067541599, 'train/value_loss': 0.14032979146577418, 'hours': 3.9893129593796197, 'frames': 78381056}
+{'iteration': 300, 'train/policy_loss': 0.4381010727956891, 'train/value_loss': 0.11238089168909937, 'hours': 4.00261680914296, 'frames': 78643200, 'eval/vs_baseline/avg_R': 0.69921875, 'eval/vs_baseline/win_rate': 0.796875, 'eval/vs_baseline/draw_rate': 0.10546875, 'eval/vs_baseline/lose_rate': 0.09765625}
+{'iteration': 301, 'train/policy_loss': 0.39364098524674773, 'train/value_loss': 0.09326326916925609, 'hours': 4.0159281806151075, 'frames': 78905344}
+{'iteration': 302, 'train/policy_loss': 0.3701955587603152, 'train/value_loss': 0.10047629405744374, 'hours': 4.029225146505568, 'frames': 79167488}
+{'iteration': 303, 'train/policy_loss': 0.3655053684487939, 'train/value_loss': 0.08900154335424304, 'hours': 4.042523897488912, 'frames': 79429632}
+{'iteration': 304, 'train/policy_loss': 0.4413227792829275, 'train/value_loss': 0.1761906803585589, 'hours': 4.055813883609241, 'frames': 79691776}
+{'iteration': 305, 'train/policy_loss': 0.3952588615939021, 'train/value_loss': 0.10468166775535792, 'hours': 4.069111676414807, 'frames': 79953920, 'eval/vs_baseline/avg_R': 0.66015625, 'eval/vs_baseline/win_rate': 0.7763671875, 'eval/vs_baseline/draw_rate': 0.107421875, 'eval/vs_baseline/lose_rate': 0.1162109375}
+{'iteration': 306, 'train/policy_loss': 0.35607924964278936, 'train/value_loss': 0.09749608184210956, 'hours': 4.082471496396594, 'frames': 80216064}
+{'iteration': 307, 'train/policy_loss': 0.3134864321909845, 'train/value_loss': 0.07493087672628462, 'hours': 4.095769050783581, 'frames': 80478208}
+{'iteration': 308, 'train/policy_loss': 0.37762712221592665, 'train/value_loss': 0.08183520706370473, 'hours': 4.109073333342869, 'frames': 80740352}
+{'iteration': 309, 'train/policy_loss': 0.39333888655528426, 'train/value_loss': 0.10705733753275126, 'hours': 4.12236978802416, 'frames': 81002496}
+{'iteration': 310, 'train/policy_loss': 0.48188043804839253, 'train/value_loss': 0.10362662479747087, 'hours': 4.13566883722941, 'frames': 81264640, 'eval/vs_baseline/avg_R': 0.6640625, 'eval/vs_baseline/win_rate': 0.7783203125, 'eval/vs_baseline/draw_rate': 0.107421875, 'eval/vs_baseline/lose_rate': 0.1142578125}
+{'iteration': 311, 'train/policy_loss': 0.48907075729221106, 'train/value_loss': 0.12422916432842612, 'hours': 4.148982838458484, 'frames': 81526784}
+{'iteration': 312, 'train/policy_loss': 0.46858747489750385, 'train/value_loss': 0.11538714764174074, 'hours': 4.162281884021228, 'frames': 81788928}
+{'iteration': 313, 'train/policy_loss': 0.490366667509079, 'train/value_loss': 0.12265363859478384, 'hours': 4.17558421479331, 'frames': 82051072}
+{'iteration': 314, 'train/policy_loss': 0.4938735938630998, 'train/value_loss': 0.14304557512514293, 'hours': 4.188889206382962, 'frames': 82313216}
+{'iteration': 315, 'train/policy_loss': 0.426237178966403, 'train/value_loss': 0.13371804158668965, 'hours': 4.202183135747908, 'frames': 82575360, 'eval/vs_baseline/avg_R': 0.6865234375, 'eval/vs_baseline/win_rate': 0.7890625, 'eval/vs_baseline/draw_rate': 0.1083984375, 'eval/vs_baseline/lose_rate': 0.1025390625}
+{'iteration': 316, 'train/policy_loss': 0.4179362915456295, 'train/value_loss': 0.11907608550973237, 'hours': 4.21548131989108, 'frames': 82837504}
+{'iteration': 317, 'train/policy_loss': 0.3075232096016407, 'train/value_loss': 0.0774326715618372, 'hours': 4.228767185608544, 'frames': 83099648}
+{'iteration': 318, 'train/policy_loss': 0.3336546807549894, 'train/value_loss': 0.0772996450541541, 'hours': 4.2420625144905495, 'frames': 83361792}
+{'iteration': 319, 'train/policy_loss': 0.3969889576546848, 'train/value_loss': 0.11441151180770248, 'hours': 4.255349999268848, 'frames': 83623936}
+{'iteration': 320, 'train/policy_loss': 0.4276337353512645, 'train/value_loss': 0.14201611769385636, 'hours': 4.268647187749543, 'frames': 83886080, 'eval/vs_baseline/avg_R': 0.671875, 'eval/vs_baseline/win_rate': 0.7734375, 'eval/vs_baseline/draw_rate': 0.125, 'eval/vs_baseline/lose_rate': 0.1015625}
+{'iteration': 321, 'train/policy_loss': 0.4077608264051378, 'train/value_loss': 0.15205384441651404, 'hours': 4.281952735185621, 'frames': 84148224}
+{'iteration': 322, 'train/policy_loss': 0.3405755772255361, 'train/value_loss': 0.09429627074860036, 'hours': 4.2952453827857955, 'frames': 84410368}
+{'iteration': 323, 'train/policy_loss': 0.2555981569457799, 'train/value_loss': 0.042302396905142814, 'hours': 4.308539575801953, 'frames': 84672512}
+{'iteration': 324, 'train/policy_loss': 0.234912502579391, 'train/value_loss': 0.03919655899517238, 'hours': 4.32183833254708, 'frames': 84934656}
+{'iteration': 325, 'train/policy_loss': 0.24404693068936467, 'train/value_loss': 0.052704015746712685, 'hours': 4.3351357234848855, 'frames': 85196800, 'eval/vs_baseline/avg_R': 0.7060546875, 'eval/vs_baseline/win_rate': 0.7861328125, 'eval/vs_baseline/draw_rate': 0.1337890625, 'eval/vs_baseline/lose_rate': 0.080078125}
+{'iteration': 326, 'train/policy_loss': 0.24867506744340062, 'train/value_loss': 0.04295268753776327, 'hours': 4.348421126802761, 'frames': 85458944}
+{'iteration': 327, 'train/policy_loss': 0.38503426080569625, 'train/value_loss': 0.08248212980106473, 'hours': 4.361727755533323, 'frames': 85721088}
+{'iteration': 328, 'train/policy_loss': 0.4062787308357656, 'train/value_loss': 0.1198085475480184, 'hours': 4.375024287369515, 'frames': 85983232}
+{'iteration': 329, 'train/policy_loss': 0.4007052588276565, 'train/value_loss': 0.1134914041031152, 'hours': 4.388334525691137, 'frames': 86245376}
+{'iteration': 330, 'train/policy_loss': 0.43702179146930575, 'train/value_loss': 0.1325892589520663, 'hours': 4.4016405981116815, 'frames': 86507520, 'eval/vs_baseline/avg_R': 0.6572265625, 'eval/vs_baseline/win_rate': 0.7578125, 'eval/vs_baseline/draw_rate': 0.1416015625, 'eval/vs_baseline/lose_rate': 0.1005859375}
+{'iteration': 331, 'train/policy_loss': 0.4572835178114474, 'train/value_loss': 0.13651753403246403, 'hours': 4.414959632820552, 'frames': 86769664}
+{'iteration': 332, 'train/policy_loss': 0.43996143247932196, 'train/value_loss': 0.11033704108558595, 'hours': 4.42826784133911, 'frames': 87031808}
+{'iteration': 333, 'train/policy_loss': 0.4040986676700413, 'train/value_loss': 0.11362703051418066, 'hours': 4.44157130241394, 'frames': 87293952}
+{'iteration': 334, 'train/policy_loss': 0.4087380999699235, 'train/value_loss': 0.11152705794665962, 'hours': 4.4548837855127115, 'frames': 87556096}
+{'iteration': 335, 'train/policy_loss': 0.3617417593486607, 'train/value_loss': 0.07634261494968086, 'hours': 4.468196897904077, 'frames': 87818240, 'eval/vs_baseline/avg_R': 0.6416015625, 'eval/vs_baseline/win_rate': 0.75390625, 'eval/vs_baseline/draw_rate': 0.1337890625, 'eval/vs_baseline/lose_rate': 0.1123046875}
+{'iteration': 336, 'train/policy_loss': 0.35925646871328354, 'train/value_loss': 0.07641864276956767, 'hours': 4.481512688265905, 'frames': 88080384}
+{'iteration': 337, 'train/policy_loss': 0.3278186358511448, 'train/value_loss': 0.08477952575776726, 'hours': 4.494822937581273, 'frames': 88342528}
+{'iteration': 338, 'train/policy_loss': 0.40031963773071766, 'train/value_loss': 0.10778065759222955, 'hours': 4.508126073082287, 'frames': 88604672}
+{'iteration': 339, 'train/policy_loss': 0.4332490982487798, 'train/value_loss': 0.09626855165697634, 'hours': 4.52142811126179, 'frames': 88866816}
+{'iteration': 340, 'train/policy_loss': 0.4303267290815711, 'train/value_loss': 0.12026623589918017, 'hours': 4.53474476761288, 'frames': 89128960, 'eval/vs_baseline/avg_R': 0.666015625, 'eval/vs_baseline/win_rate': 0.7607421875, 'eval/vs_baseline/draw_rate': 0.14453125, 'eval/vs_baseline/lose_rate': 0.0947265625}
+{'iteration': 341, 'train/policy_loss': 0.3622076832689345, 'train/value_loss': 0.10549077508039773, 'hours': 4.548064750896558, 'frames': 89391104}
+{'iteration': 342, 'train/policy_loss': 0.39439710788428783, 'train/value_loss': 0.11878113518469036, 'hours': 4.561377211279337, 'frames': 89653248}
+{'iteration': 343, 'train/policy_loss': 0.35984495375305414, 'train/value_loss': 0.12504102662205696, 'hours': 4.574699926839933, 'frames': 89915392}
+{'iteration': 344, 'train/policy_loss': 0.33177376352250576, 'train/value_loss': 0.07629577163606882, 'hours': 4.587992968360581, 'frames': 90177536}
+{'iteration': 345, 'train/policy_loss': 0.32381709944456816, 'train/value_loss': 0.08194528799504042, 'hours': 4.601297528611287, 'frames': 90439680, 'eval/vs_baseline/avg_R': 0.65625, 'eval/vs_baseline/win_rate': 0.7490234375, 'eval/vs_baseline/draw_rate': 0.158203125, 'eval/vs_baseline/lose_rate': 0.0927734375}
+{'iteration': 346, 'train/policy_loss': 0.367692104075104, 'train/value_loss': 0.05367589375237003, 'hours': 4.614596080316435, 'frames': 90701824}
+{'iteration': 347, 'train/policy_loss': 0.3465083227492869, 'train/value_loss': 0.046454992378130555, 'hours': 4.627891895969706, 'frames': 90963968}
+{'iteration': 348, 'train/policy_loss': 0.3352507599629462, 'train/value_loss': 0.05245031154481694, 'hours': 4.6411827148331515, 'frames': 91226112}
+{'iteration': 349, 'train/policy_loss': 0.3804220794700086, 'train/value_loss': 0.07673267368227243, 'hours': 4.654474673006267, 'frames': 91488256}
+{'iteration': 350, 'train/policy_loss': 0.4262843360193074, 'train/value_loss': 0.08081773074809462, 'hours': 4.667780453960098, 'frames': 91750400, 'eval/vs_baseline/avg_R': 0.6357421875, 'eval/vs_baseline/win_rate': 0.75, 'eval/vs_baseline/draw_rate': 0.1357421875, 'eval/vs_baseline/lose_rate': 0.1142578125}
+{'iteration': 351, 'train/policy_loss': 0.3788683512248099, 'train/value_loss': 0.0657724206103012, 'hours': 4.681073321700094, 'frames': 92012544}
+{'iteration': 352, 'train/policy_loss': 0.3868913808837533, 'train/value_loss': 0.07801268040202558, 'hours': 4.6943616735272915, 'frames': 92274688}
+{'iteration': 353, 'train/policy_loss': 0.4558564624749124, 'train/value_loss': 0.10601785918697715, 'hours': 4.707663412822615, 'frames': 92536832}
+{'iteration': 354, 'train/policy_loss': 0.44296932499855757, 'train/value_loss': 0.12736561766359955, 'hours': 4.720980804959931, 'frames': 92798976}
+{'iteration': 355, 'train/policy_loss': 0.44231988582760096, 'train/value_loss': 0.11206310638226569, 'hours': 4.734273341761693, 'frames': 93061120, 'eval/vs_baseline/avg_R': 0.599609375, 'eval/vs_baseline/win_rate': 0.724609375, 'eval/vs_baseline/draw_rate': 0.150390625, 'eval/vs_baseline/lose_rate': 0.125}
+{'iteration': 356, 'train/policy_loss': 0.44088620180264115, 'train/value_loss': 0.11417157365940511, 'hours': 4.747575799557896, 'frames': 93323264}
+{'iteration': 357, 'train/policy_loss': 0.43343105632811785, 'train/value_loss': 0.11719806597102433, 'hours': 4.760876840220555, 'frames': 93585408}
+{'iteration': 358, 'train/policy_loss': 0.41583755146712065, 'train/value_loss': 0.11664433719124645, 'hours': 4.774185332324768, 'frames': 93847552}
+{'iteration': 359, 'train/policy_loss': 0.4312862195074558, 'train/value_loss': 0.10070014465600252, 'hours': 4.787486246360671, 'frames': 94109696}
+{'iteration': 360, 'train/policy_loss': 0.40480205276980996, 'train/value_loss': 0.12893124006222934, 'hours': 4.800806295143231, 'frames': 94371840, 'eval/vs_baseline/avg_R': 0.64453125, 'eval/vs_baseline/win_rate': 0.7373046875, 'eval/vs_baseline/draw_rate': 0.169921875, 'eval/vs_baseline/lose_rate': 0.0927734375}
+{'iteration': 361, 'train/policy_loss': 0.4533114153891802, 'train/value_loss': 0.0679627598146908, 'hours': 4.814095942709179, 'frames': 94633984}
+{'iteration': 362, 'train/policy_loss': 0.4381815828382969, 'train/value_loss': 0.07885910233017057, 'hours': 4.82738853977786, 'frames': 94896128}
+{'iteration': 363, 'train/policy_loss': 0.4507786245085299, 'train/value_loss': 0.08446744037792087, 'hours': 4.840679360893036, 'frames': 95158272}
+{'iteration': 364, 'train/policy_loss': 0.4538469170220196, 'train/value_loss': 0.07406042912043631, 'hours': 4.854025066561167, 'frames': 95420416}
+{'iteration': 365, 'train/policy_loss': 0.3922953773289919, 'train/value_loss': 0.058929336548317224, 'hours': 4.86731174137857, 'frames': 95682560, 'eval/vs_baseline/avg_R': 0.646484375, 'eval/vs_baseline/win_rate': 0.716796875, 'eval/vs_baseline/draw_rate': 0.212890625, 'eval/vs_baseline/lose_rate': 0.0703125}
+{'iteration': 366, 'train/policy_loss': 0.4349389998242259, 'train/value_loss': 0.07542914582882077, 'hours': 4.880602316260336, 'frames': 95944704}
+{'iteration': 367, 'train/policy_loss': 0.4027508581057191, 'train/value_loss': 0.07138793566264212, 'hours': 4.8938918835586955, 'frames': 96206848}
+{'iteration': 368, 'train/policy_loss': 0.36181494127959013, 'train/value_loss': 0.05240017926553264, 'hours': 4.907212997476258, 'frames': 96468992}
+{'iteration': 369, 'train/policy_loss': 0.3229055851697922, 'train/value_loss': 0.03615052159875631, 'hours': 4.920513716737428, 'frames': 96731136}
+{'iteration': 370, 'train/policy_loss': 0.31044196197763085, 'train/value_loss': 0.05212820728775114, 'hours': 4.933801235755284, 'frames': 96993280, 'eval/vs_baseline/avg_R': 0.6220703125, 'eval/vs_baseline/win_rate': 0.7197265625, 'eval/vs_baseline/draw_rate': 0.1826171875, 'eval/vs_baseline/lose_rate': 0.09765625}
+{'iteration': 371, 'train/policy_loss': 0.3029650882817805, 'train/value_loss': 0.046972232637926936, 'hours': 4.947092146277427, 'frames': 97255424}
+{'iteration': 372, 'train/policy_loss': 0.32933191070333123, 'train/value_loss': 0.04839986370643601, 'hours': 4.960369808144039, 'frames': 97517568}
+{'iteration': 373, 'train/policy_loss': 0.30489586526528, 'train/value_loss': 0.04824051633477211, 'hours': 4.973651814063389, 'frames': 97779712}
+{'iteration': 374, 'train/policy_loss': 0.30274271219968796, 'train/value_loss': 0.044848003366496414, 'hours': 4.986931772761874, 'frames': 98041856}
+{'iteration': 375, 'train/policy_loss': 0.32103536976501346, 'train/value_loss': 0.04608780122362077, 'hours': 5.000212338964144, 'frames': 98304000, 'eval/vs_baseline/avg_R': 0.6572265625, 'eval/vs_baseline/win_rate': 0.7373046875, 'eval/vs_baseline/draw_rate': 0.1826171875, 'eval/vs_baseline/lose_rate': 0.080078125}
+{'iteration': 376, 'train/policy_loss': 0.35493903420865536, 'train/value_loss': 0.0877198971575126, 'hours': 5.0135071474313735, 'frames': 98566144}
+{'iteration': 377, 'train/policy_loss': 0.34099999675527215, 'train/value_loss': 0.058606604870874435, 'hours': 5.026785047915246, 'frames': 98828288}
+{'iteration': 378, 'train/policy_loss': 0.4112916593439877, 'train/value_loss': 0.07880625384859741, 'hours': 5.040075385239389, 'frames': 99090432}
+{'iteration': 379, 'train/policy_loss': 0.4217293243855238, 'train/value_loss': 0.09034799062646925, 'hours': 5.053354577488369, 'frames': 99352576}
+{'iteration': 380, 'train/policy_loss': 0.3899287157692015, 'train/value_loss': 0.04811434750445187, 'hours': 5.066641929017172, 'frames': 99614720, 'eval/vs_baseline/avg_R': 0.6494140625, 'eval/vs_baseline/win_rate': 0.7568359375, 'eval/vs_baseline/draw_rate': 0.1357421875, 'eval/vs_baseline/lose_rate': 0.107421875}
+{'iteration': 381, 'train/policy_loss': 0.38163399836048484, 'train/value_loss': 0.04335783695569262, 'hours': 5.079941856132613, 'frames': 99876864}
+{'iteration': 382, 'train/policy_loss': 0.40279872296378016, 'train/value_loss': 0.08819281123578548, 'hours': 5.093223795360989, 'frames': 100139008}
+{'iteration': 383, 'train/policy_loss': 0.47770850267261267, 'train/value_loss': 0.14202940254472196, 'hours': 5.106517915725708, 'frames': 100401152}
+{'iteration': 384, 'train/policy_loss': 0.44727109046652913, 'train/value_loss': 0.13589687342755497, 'hours': 5.119817065000534, 'frames': 100663296}
+{'iteration': 385, 'train/policy_loss': 0.4585475027561188, 'train/value_loss': 0.1256582378409803, 'hours': 5.133107406165864, 'frames': 100925440, 'eval/vs_baseline/avg_R': 0.603515625, 'eval/vs_baseline/win_rate': 0.70703125, 'eval/vs_baseline/draw_rate': 0.189453125, 'eval/vs_baseline/lose_rate': 0.103515625}
+{'iteration': 386, 'train/policy_loss': 0.4640967985615134, 'train/value_loss': 0.10106503637507558, 'hours': 5.146410335898399, 'frames': 101187584}
+{'iteration': 387, 'train/policy_loss': 0.4535477957688272, 'train/value_loss': 0.1290877015562728, 'hours': 5.159712946547402, 'frames': 101449728}
+{'iteration': 388, 'train/policy_loss': 0.45273877307772636, 'train/value_loss': 0.14786594943143427, 'hours': 5.1730007882250675, 'frames': 101711872}
+{'iteration': 389, 'train/policy_loss': 0.45658558746799827, 'train/value_loss': 0.1342236481141299, 'hours': 5.186306210160255, 'frames': 101974016}
+{'iteration': 390, 'train/policy_loss': 0.4575285860337317, 'train/value_loss': 0.13775356789119542, 'hours': 5.199604544705814, 'frames': 102236160, 'eval/vs_baseline/avg_R': 0.6884765625, 'eval/vs_baseline/win_rate': 0.76953125, 'eval/vs_baseline/draw_rate': 0.1494140625, 'eval/vs_baseline/lose_rate': 0.0810546875}
+{'iteration': 391, 'train/policy_loss': 0.3950217515230179, 'train/value_loss': 0.11547403736039996, 'hours': 5.212908296651309, 'frames': 102498304}
+{'iteration': 392, 'train/policy_loss': 0.4207209497690201, 'train/value_loss': 0.1116514973109588, 'hours': 5.226196602914068, 'frames': 102760448}
+{'iteration': 393, 'train/policy_loss': 0.3964763400144875, 'train/value_loss': 0.08320536790415645, 'hours': 5.239499191111988, 'frames': 103022592}
+{'iteration': 394, 'train/policy_loss': 0.42705951258540154, 'train/value_loss': 0.09175032179336995, 'hours': 5.252802123162481, 'frames': 103284736}
+{'iteration': 395, 'train/policy_loss': 0.45338742854073644, 'train/value_loss': 0.0932411290705204, 'hours': 5.2661114228434025, 'frames': 103546880, 'eval/vs_baseline/avg_R': 0.6728515625, 'eval/vs_baseline/win_rate': 0.7724609375, 'eval/vs_baseline/draw_rate': 0.1279296875, 'eval/vs_baseline/lose_rate': 0.099609375}
+{'iteration': 396, 'train/policy_loss': 0.48468306893482804, 'train/value_loss': 0.11645057273562998, 'hours': 5.279423534472783, 'frames': 103809024}
+{'iteration': 397, 'train/policy_loss': 0.4905753009952605, 'train/value_loss': 0.12660046201199293, 'hours': 5.292729832728703, 'frames': 104071168}
+{'iteration': 398, 'train/policy_loss': 0.4385763807222247, 'train/value_loss': 0.12867786514107138, 'hours': 5.306038818558057, 'frames': 104333312}
+{'iteration': 399, 'train/policy_loss': 0.46346029825508595, 'train/value_loss': 0.14283760450780392, 'hours': 5.319360563225216, 'frames': 104595456}
+{'iteration': 400, 'train/policy_loss': 0.41776494728401303, 'train/value_loss': 0.10406466480344534, 'hours': 5.332658248080148, 'frames': 104857600, 'eval/vs_baseline/avg_R': 0.6669921875, 'eval/vs_baseline/win_rate': 0.7666015625, 'eval/vs_baseline/draw_rate': 0.1337890625, 'eval/vs_baseline/lose_rate': 0.099609375}
+====================================================
+ Running AlphaZero training with num_simulations = 8
+====================================================
+====================================================
+ Running AlphaZero training with num_simulations = 16
+====================================================
+====================================================
+ Running AlphaZero training with num_simulations = 32
+====================================================
