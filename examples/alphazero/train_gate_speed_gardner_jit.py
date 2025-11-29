@@ -55,6 +55,9 @@ COST_32 = 32
 # How often to log a sample game trajectory to wandb
 TRAJ_LOG_INTERVAL = 50
 
+# Gate checkpoint directory
+GATE_CKPT_ROOT = "./gate_checkpoints"
+
 
 # ================================================================
 # 2. Stub Config + checkpoint loading (as in training)
@@ -213,6 +216,7 @@ def make_select_actions_mcts(forward, recurrent_fn, num_simulations: int):
             gumbel_scale=1.0,
         )
         return policy_output.action  # (batch,)
+
     return select_actions_mcts
 
 
@@ -269,15 +273,14 @@ gate_forward = hk.without_apply_rng(hk.transform(gate_forward_fn))
 @jax.tree_util.register_pytree_node_class
 @dataclass
 class PPOBatch:
-    obs: jnp.ndarray         # (T, 5,5,115)
-    time: jnp.ndarray        # (T, 2) normalized times
-    actions: jnp.ndarray     # (T,)
-    logp_old: jnp.ndarray    # (T,)
-    values_old: jnp.ndarray  # (T,)
-    returns: jnp.ndarray     # (T,)
-    advantages: jnp.ndarray  # (T,)
+    obs: jnp.ndarray         # (T or U, B, 5,5,115) or (T,5,5,115)
+    time: jnp.ndarray        # (T or U, B, 2) or (T,2)
+    actions: jnp.ndarray     # (T or U, B) or (T,)
+    logp_old: jnp.ndarray    # (T or U, B) or (T,)
+    values_old: jnp.ndarray  # (T or U, B) or (T,)
+    returns: jnp.ndarray     # (T or U, B) or (T,)
+    advantages: jnp.ndarray  # (T or U, B) or (T,)
 
-    # Tell JAX how to treat this as a pytree
     def tree_flatten(self):
         children = (
             self.obs,
@@ -340,10 +343,16 @@ def make_ppo_loss_fn():
     def loss_fn(params, batch: PPOBatch):
         logits, values = gate_forward.apply(
             params, batch.obs, batch.time
-        )  # logits: (T,2), values: (T,)
+        )  # logits: (...,2), values: (...)
 
         log_probs = jax.nn.log_softmax(logits, axis=-1)
-        logp = log_probs[jnp.arange(batch.actions.shape[0]), batch.actions]  # (T,)
+        gather_idx = jnp.arange(batch.actions.shape[-1]) if batch.actions.ndim == 2 else jnp.arange(batch.actions.shape[0])
+        # Handle both (T,B) and (T,) shapes via broadcasting
+        logp = jnp.take_along_axis(
+            log_probs,
+            batch.actions[..., None],
+            axis=-1,
+        )[..., 0]
 
         # Ratio
         ratios = jnp.exp(logp - batch.logp_old)
@@ -385,7 +394,7 @@ def make_ppo_loss_fn():
 
 
 # ================================================================
-# 6. Helper: build PPOBatch + rollout stats from JAX traj
+# 6. Helper: build PPOBatch + rollout stats + histograms from traj
 # ================================================================
 
 def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
@@ -428,7 +437,7 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
         advantages=advantages,
     )
 
-    # ---------- Stats on host ----------
+    # ---------- Stats + hist on host ----------
     actions_np = np.array(actions_arr, dtype=np.int32)
     players_np = np.array(players_arr, dtype=np.int32)
     dones_np = np.array(dones_arr > 0.5, dtype=bool)
@@ -503,21 +512,37 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
         }
     )
 
-    # ---------- Reconstruct some episode traces for debug ----------
+    # ---------- Reconstruct episode traces + win/loss/draw + hist ----------
     ep_traces: List[dict] = []
+    hist_vals_8: List[int] = []
+    hist_vals_32: List[int] = []
+
+    wins_p0 = 0
+    losses_p0 = 0
+    draws = 0
+
     if len(done_idx) > 0:
         start = 0
         for idx in done_idx:
             steps: List[dict] = []
             for t in range(start, idx + 1):
+                local_move_idx = t - start
+                a = int(actions_np[t])
+                if a == 0:
+                    hist_vals_8.append(local_move_idx)
+                else:
+                    hist_vals_32.append(local_move_idx)
+
                 steps.append(
                     {
                         "player": int(players_np[t]),
-                        "action": int(actions_np[t]),
+                        "action": a,
                         "my_time": float(time_np[t, 0]),
                         "opp_time": float(time_np[t, 1]),
                     }
                 )
+
+            # Final outcome from rewards: reward is for prev_player at termination
             r = float(rewards_np[idx])
             mover = int(players_np[idx])
             if r > 0:
@@ -538,6 +563,13 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
                 result_p0 = 0.0
                 result_p1 = 0.0
 
+            if result_p0 > 0:
+                wins_p0 += 1
+            elif result_p0 < 0:
+                losses_p0 += 1
+            else:
+                draws += 1
+
             ep_traces.append(
                 {
                     "steps": steps,
@@ -547,11 +579,32 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
             )
             start = idx + 1
 
-    return batch, stats, ep_traces
+    if len(done_idx) > 0:
+        num_games = len(done_idx)
+        stats.update(
+            {
+                "win_rate_p0": wins_p0 / num_games,
+                "loss_rate_p0": losses_p0 / num_games,
+                "draw_rate": draws / num_games,
+            }
+        )
+    else:
+        stats.update(
+            {
+                "win_rate_p0": 0.0,
+                "loss_rate_p0": 0.0,
+                "draw_rate": 0.0,
+            }
+        )
+
+    hist_vals_8 = np.array(hist_vals_8, dtype=np.int32)
+    hist_vals_32 = np.array(hist_vals_32, dtype=np.int32)
+
+    return batch, stats, ep_traces, hist_vals_8, hist_vals_32
 
 
 # ================================================================
-# 7. Jitted rollout (scan over time)
+# 7. Jitted rollout (scan over time) – gate + random gate
 # ================================================================
 
 def make_rollout_core(
@@ -566,7 +619,7 @@ def make_rollout_core(
 
     def rollout_core(state, gate_params, rng_key, num_steps: int):
         """
-        Jitted self-play rollout using jax.lax.scan.
+        Jitted self-play rollout using jax.lax.scan, GateNet gating.
         """
 
         def one_step(carry, _):
@@ -613,12 +666,6 @@ def make_rollout_core(
             log_probs = jax.nn.log_softmax(logits)
             gate_action = jax.random.categorical(key_gate, logits)  # 0 or 1
             logp = log_probs[gate_action]
-
-            # Example debug print (uncomment if needed; will be spammy):
-            # jdebug.print(
-            #     "gate_action={g}, cur={p}, my_time={mt}, opp_time={ot}",
-            #     g=gate_action, p=cur, mt=time_norm[0], ot=time_norm[1]
-            # )
 
             # -------- Execute move via chosen MCTS --------
             state_b = jax.tree_util.tree_map(lambda x: x[None, ...], state)
@@ -668,6 +715,102 @@ def make_rollout_core(
     return rollout_core_jit
 
 
+def make_rollout_core_random(
+    env_speed: GardnerChess,
+    select_mcts_8,
+    select_mcts_32,
+    model_8,
+    model_32,
+    default_time: float,
+):
+    """
+    Same as rollout_core, but gating policy is uniform random over {8,32}.
+    """
+    default_time_f32 = jnp.float32(default_time)
+
+    def rollout_core_random(state, gate_params_unused, rng_key, num_steps: int):
+        def one_step(carry, _):
+            state, rng = carry
+
+            rng, key_reset, key_gate, key_mcts = jax.random.split(rng, 4)
+            done_prev = state.terminated | state.truncated
+
+            def reset_fn(carry_inner):
+                _state, k = carry_inner
+                return env_speed.init(k)
+
+            def keep_fn(carry_inner):
+                s, _ = carry_inner
+                return s
+
+            state = jax.lax.cond(
+                done_prev,
+                reset_fn,
+                keep_fn,
+                operand=(state, key_reset),
+            )
+
+            obs = state.observation
+            time_left = state.time_left
+            cur = state.current_player
+
+            my_time = time_left[cur]
+            opp_time = time_left[1 - cur]
+            time_norm = jnp.array(
+                [my_time / default_time_f32, opp_time / default_time_f32],
+                dtype=jnp.float32,
+            )
+
+            # Random gate: uniform {0,1}
+            gate_action = jax.random.randint(key_gate, (), 0, 2)
+            logp = jnp.log(jnp.float32(0.5))
+            value = jnp.float32(0.0)  # unused in eval
+
+            state_b = jax.tree_util.tree_map(lambda x: x[None, ...], state)
+
+            def run_mcts_8(_):
+                a = select_mcts_8(model_8, state_b, key_mcts)[0]
+                return a, jnp.int32(COST_8)
+
+            def run_mcts_32(_):
+                a = select_mcts_32(model_32, state_b, key_mcts)[0]
+                return a, jnp.int32(COST_32)
+
+            action, time_spent = jax.lax.cond(
+                gate_action == 0,
+                run_mcts_8,
+                run_mcts_32,
+                operand=None,
+            )
+
+            prev_player = cur
+            state_next = env_speed.step(state, (action, time_spent))
+            done = state_next.terminated | state_next.truncated
+            move_reward = state_next.rewards[prev_player]
+            reward = jax.lax.select(done, move_reward, jnp.float32(0.0))
+
+            carry_next = (state_next, rng)
+            out = {
+                "obs": obs,
+                "time": time_norm,
+                "action": gate_action,
+                "logp": logp,
+                "value": value,
+                "reward": reward,
+                "done": done,
+                "player": prev_player,
+            }
+            return carry_next, out
+
+        (state_final, rng_final), traj = jax.lax.scan(
+            one_step, (state, rng_key), xs=None, length=num_steps
+        )
+        return state_final, rng_final, traj
+
+    rollout_core_random_jit = jax.jit(rollout_core_random, static_argnums=(3,))
+    return rollout_core_random_jit
+
+
 def rollout_selfplay(
     rollout_core_jit,
     state,
@@ -676,18 +819,18 @@ def rollout_selfplay(
     num_steps: int,
 ):
     """
-    Wrapper: calls jitted rollout_core, then builds PPOBatch + stats + episode traces.
+    Wrapper: calls jitted rollout_core, then builds PPOBatch + stats + episode traces + hist.
     """
     state_final, rng_final, traj = rollout_core_jit(
         state, gate_params, rng_key, num_steps
     )
 
-    batch, stats, ep_traces = build_batch_and_stats(traj)
-    return state_final, rng_final, batch, stats, ep_traces
+    batch, stats, ep_traces, hist_vals_8, hist_vals_32 = build_batch_and_stats(traj)
+    return state_final, rng_final, batch, stats, ep_traces, hist_vals_8, hist_vals_32
 
 
 # ================================================================
-# 8. Main training loop (self-play PPO) + wandb + tqdm
+# 8. Main training loop (self-play PPO) + wandb + lax.scan over minibatches
 # ================================================================
 
 def main():
@@ -756,8 +899,7 @@ def main():
     def ppo_update_many(params, opt_state, batches: PPOBatch):
         """
         batches: PPOBatch where each field has shape (U, B, ...)
-                U = total number of SGD steps (epochs * minibatches)
-                B = BATCH_SIZE
+                 U = total number of SGD steps (epochs * minibatches)
         """
 
         def body(carry, mb: PPOBatch):
@@ -775,11 +917,18 @@ def main():
         # metrics_seq is a dict of arrays, each (U,)
         return params_final, opt_state_final, metrics_seq
 
-
     # ----------------------
-    # Jitted rollout core
+    # Jitted rollout cores (gate + random)
     # ----------------------
     rollout_core_jit = make_rollout_core(
+        env_speed,
+        select_mcts_8,
+        select_mcts_32,
+        model_8,
+        model_32,
+        default_time,
+    )
+    rollout_core_random_jit = make_rollout_core_random(
         env_speed,
         select_mcts_8,
         select_mcts_32,
@@ -816,12 +965,19 @@ def main():
     )
     print("initialized wandb and checkpoint loading")
 
+    run = wandb.run
+    run_name = run.name if run is not None else "gate_run"
+    save_dir = os.path.join(GATE_CKPT_ROOT, run_name)
+    os.makedirs(save_dir, exist_ok=True)
+    SAVE_INTERVAL = max(1, NUM_UPDATES // 10)
+    best_mean_return = -1e9
+
     # ----------------------
     # Training loop
     # ----------------------
     for update in trange(1, NUM_UPDATES + 1, desc="PPO updates"):
         # Collect rollout (jitted)
-        state, rng, batch, roll_stats, ep_traces = rollout_selfplay(
+        state, rng, batch, roll_stats, ep_traces, hist_vals_8, hist_vals_32 = rollout_selfplay(
             rollout_core_jit,
             state,
             gate_params,
@@ -829,34 +985,22 @@ def main():
             ROLLOUT_STEPS,
         )
 
-        # Shuffle batch and do minibatch PPO
+        # Shuffle batch and do minibatch PPO via single scan
         T = int(batch.obs.shape[0])
         num_mbs = T // BATCH_SIZE
         if num_mbs == 0:
             raise RuntimeError(f"Batch too small for BATCH_SIZE={BATCH_SIZE}, T={T}")
 
-        # --------------------------------------------------------
-        # Build ALL minibatch indices for ALL epochs on host
-        # all_mb_indices shape: (PPO_EPOCHS * num_mbs, BATCH_SIZE)
-        # --------------------------------------------------------
         all_mb_indices = []
-
         for epoch in range(PPO_EPOCHS):
             idxs = np.arange(T)
             np.random.shuffle(idxs)
-            # drop remainder, keep num_mbs * BATCH_SIZE
             idxs_epoch = idxs[: num_mbs * BATCH_SIZE].reshape(num_mbs, BATCH_SIZE)
             all_mb_indices.append(idxs_epoch)
-
         all_mb_indices = np.stack(all_mb_indices, axis=0)  # (E, num_mbs, B)
-        all_mb_indices = all_mb_indices.reshape(-1, BATCH_SIZE)  # (U, B)
-        U = all_mb_indices.shape[0]  # total SGD steps
+        all_mb_indices = all_mb_indices.reshape(-1, BATCH_SIZE)  # (U,B)
+        U = all_mb_indices.shape[0]
 
-        # --------------------------------------------------------
-        # Gather all minibatches into a single PPOBatch with
-        # leading dim U over update steps.
-        # Shapes: (U, BATCH_SIZE, ...)
-        # --------------------------------------------------------
         mb_obs = batch.obs[all_mb_indices]            # (U,B,...)
         mb_time = batch.time[all_mb_indices]
         mb_actions = batch.actions[all_mb_indices]
@@ -875,19 +1019,57 @@ def main():
             advantages=mb_advantages,
         )
 
-        # --------------------------------------------------------
-        # Single jitted scan over all SGD steps
-        # --------------------------------------------------------
         gate_params, opt_state, metrics_seq = ppo_update_many(
             gate_params, opt_state, batches_seq
         )
 
-        # metrics_seq is a dict of arrays, each (U,)
         metrics_avg = {k: float(jnp.mean(v)) for k, v in metrics_seq.items()}
 
+        # --------------------------
+        # Optional: random baseline & checkpointing every 10%
+        # --------------------------
+        random_stats = None
+        if update % SAVE_INTERVAL == 0:
+            # Save current gate
+            ckpt_path = os.path.join(save_dir, f"gate_{update:06d}.pkl")
+            with open(ckpt_path, "wb") as f:
+                pickle.dump(
+                    {
+                        "update": update,
+                        "gate_params": gate_params,
+                        "opt_state": opt_state,
+                        "config": dict(wandb.config),
+                        "rollout_stats": roll_stats,
+                    },
+                    f,
+                )
+
+            # Update best gate based on mean_ep_return
+            if roll_stats["mean_ep_return"] > best_mean_return:
+                best_mean_return = roll_stats["mean_ep_return"]
+                best_ckpt_path = os.path.join(save_dir, "gate_best.pkl")
+                with open(best_ckpt_path, "wb") as f:
+                    pickle.dump(
+                        {
+                            "best_update": update,
+                            "gate_params": gate_params,
+                            "opt_state": opt_state,
+                            "config": dict(wandb.config),
+                            "rollout_stats": roll_stats,
+                        },
+                        f,
+                    )
+
+            # Random gating baseline evaluation
+            rng, key_eval_init = jax.random.split(rng)
+            state_eval = env_speed.init(key_eval_init)
+            state_eval, rng, traj_random = rollout_core_random_jit(
+                state_eval, gate_params, rng, ROLLOUT_STEPS
+            )
+            _, random_stats, _, _, _ = build_batch_and_stats(traj_random)
 
         # Build wandb log dict
-        log_dict = {
+        log_dict: Dict[str, Any] = {
             "train/loss": metrics_avg["loss"],
             "train/policy_loss": metrics_avg["policy_loss"],
             "train/value_loss": metrics_avg["value_loss"],
@@ -906,7 +1088,28 @@ def main():
             "rollout/advantages_std": roll_stats["advantages_std"],
             "rollout/returns_mean": roll_stats["returns_mean"],
             "rollout/returns_std": roll_stats["returns_std"],
+            "rollout/win_rate_p0": roll_stats["win_rate_p0"],
+            "rollout/loss_rate_p0": roll_stats["loss_rate_p0"],
+            "rollout/draw_rate": roll_stats["draw_rate"],
         }
+
+        # Histograms: move index where nsim=8 / nsim=32 were used
+        if hist_vals_8.size > 0:
+            log_dict["rollout/hist_move_idx_8"] = wandb.Histogram(hist_vals_8)
+        if hist_vals_32.size > 0:
+            log_dict["rollout/hist_move_idx_32"] = wandb.Histogram(hist_vals_32)
+
+        # Random baseline logs (when computed)
+        if random_stats is not None:
+            log_dict.update(
+                {
+                    "random/mean_ep_return": random_stats["mean_ep_return"],
+                    "random/mean_ep_len": random_stats["mean_ep_len"],
+                    "random/win_rate_p0": random_stats["win_rate_p0"],
+                    "random/loss_rate_p0": random_stats["loss_rate_p0"],
+                    "random/draw_rate": random_stats["draw_rate"],
+                }
+            )
 
         # Sample game trajectory (text) occasionally
         if (update % TRAJ_LOG_INTERVAL == 0) and len(ep_traces) > 0:
