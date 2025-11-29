@@ -2055,3 +2055,21 @@ wandb: 🚀 View run at https://wandb.ai/aneeshmuppidi19/pgx-speed-gate/runs/030
 Rollout: 100%|█████████▉| 2044/2048 [42:51<00:05,  1.29s/it][A
 Rollout: 100%|█████████▉| 2045/2048 [42:52<00:03,  1.28s/it][A
 Rollout: 100%|█████████▉| 2046/2048 [42:54<00:02,  1.28s/it][A
+Rollout: 100%|█████████▉| 2047/2048 [42:55<00:01,  1.28s/it][A
+Rollout: 100%|██████████| 2048/2048 [42:56<00:00,  1.28s/it][A
+                                                            [APPO updates:   0%|          | 0/1000 [43:02<?, ?it/s]
+jax.errors.SimplifiedTraceback: For simplicity, JAX has removed its internal frames from the traceback of the following exception. Set JAX_TRACEBACK_FILTERING=off to include these.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/n/home04/amuppidi/speedchess/examples/alphazero/train_gate_speed_gardner_selfplay.py", line 803, in <module>
+    main()
+  File "/n/home04/amuppidi/speedchess/examples/alphazero/train_gate_speed_gardner_selfplay.py", line 725, in main
+    gate_params, opt_state, metrics = ppo_update_step(
+TypeError: Error interpreting argument to <function main.<locals>.ppo_update_step at 0x14ab68ebe7a0> as an abstract array. The problematic value is of type <class '__main__.PPOBatch'> and was passed to the function at path batch.
+This typically means that a jit-wrapped function was called with a non-array argument, and this argument was not marked as static using the static_argnums or static_argnames parameters of jax.jit.
+wandb: - 0.011 MB of 0.011 MB uploadedwandb: \ 0.011 MB of 0.011 MB uploadedwandb: | 0.011 MB of 0.022 MB uploadedwandb: 🚀 View run gate_speed_gardner_selfplay at: https://wandb.ai/aneeshmuppidi19/pgx-speed-gate/runs/030cydx8
+wandb: ⭐️ View project at: https://wandb.ai/aneeshmuppidi19/pgx-speed-gate
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20251129_163940-030cydx8/logs

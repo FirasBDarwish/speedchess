@@ -753,11 +753,28 @@ def main():
     value_and_grad = jax.value_and_grad(loss_fn, has_aux=True)
 
     @jax.jit
-    def ppo_update_step(params, opt_state, batch: PPOBatch):
-        (loss, metrics), grads = value_and_grad(params, batch)
-        updates, opt_state = optimizer.update(grads, opt_state, params)
-        params = optax.apply_updates(params, updates)
-        return params, opt_state, metrics
+    def ppo_update_many(params, opt_state, batches: PPOBatch):
+        """
+        batches: PPOBatch where each field has shape (U, B, ...)
+                U = total number of SGD steps (epochs * minibatches)
+                B = BATCH_SIZE
+        """
+
+        def body(carry, mb: PPOBatch):
+            params, opt_state = carry
+            (loss, metrics), grads = value_and_grad(params, mb)
+            updates, opt_state = optimizer.update(grads, opt_state, params)
+            params = optax.apply_updates(params, updates)
+            return (params, opt_state), metrics
+
+        (params_final, opt_state_final), metrics_seq = jax.lax.scan(
+            body,
+            (params, opt_state),
+            batches,       # PyTree with leading dim U
+        )
+        # metrics_seq is a dict of arrays, each (U,)
+        return params_final, opt_state_final, metrics_seq
+
 
     # ----------------------
     # Jitted rollout core
@@ -813,49 +830,61 @@ def main():
         )
 
         # Shuffle batch and do minibatch PPO
-        T = batch.obs.shape[0]
-        idxs = np.arange(T)
-        np.random.shuffle(idxs)
+        T = int(batch.obs.shape[0])
+        num_mbs = T // BATCH_SIZE
+        if num_mbs == 0:
+            raise RuntimeError(f"Batch too small for BATCH_SIZE={BATCH_SIZE}, T={T}")
 
-        metrics_accum = None
-        mb_count = 0
+        # --------------------------------------------------------
+        # Build ALL minibatch indices for ALL epochs on host
+        # all_mb_indices shape: (PPO_EPOCHS * num_mbs, BATCH_SIZE)
+        # --------------------------------------------------------
+        all_mb_indices = []
 
         for epoch in range(PPO_EPOCHS):
-            for start in range(0, T, BATCH_SIZE):
-                end = start + BATCH_SIZE
-                mb_idx = idxs[start:end]
-                if len(mb_idx) == 0:
-                    continue
+            idxs = np.arange(T)
+            np.random.shuffle(idxs)
+            # drop remainder, keep num_mbs * BATCH_SIZE
+            idxs_epoch = idxs[: num_mbs * BATCH_SIZE].reshape(num_mbs, BATCH_SIZE)
+            all_mb_indices.append(idxs_epoch)
 
-                mb = PPOBatch(
-                    obs=batch.obs[mb_idx],
-                    time=batch.time[mb_idx],
-                    actions=batch.actions[mb_idx],
-                    logp_old=batch.logp_old[mb_idx],
-                    values_old=batch.values_old[mb_idx],
-                    returns=batch.returns[mb_idx],
-                    advantages=batch.advantages[mb_idx],
-                )
-                gate_params, opt_state, metrics = ppo_update_step(
-                    gate_params, opt_state, mb
-                )
-                if metrics_accum is None:
-                    metrics_accum = {k: float(v) for k, v in metrics.items()}
-                else:
-                    for k, v in metrics.items():
-                        metrics_accum[k] += float(v)
-                mb_count += 1
+        all_mb_indices = np.stack(all_mb_indices, axis=0)  # (E, num_mbs, B)
+        all_mb_indices = all_mb_indices.reshape(-1, BATCH_SIZE)  # (U, B)
+        U = all_mb_indices.shape[0]  # total SGD steps
 
-        if metrics_accum is not None and mb_count > 0:
-            metrics_avg = {k: v / mb_count for k, v in metrics_accum.items()}
-        else:
-            metrics_avg = {
-                "loss": 0.0,
-                "policy_loss": 0.0,
-                "value_loss": 0.0,
-                "entropy": 0.0,
-                "approx_kl": 0.0,
-            }
+        # --------------------------------------------------------
+        # Gather all minibatches into a single PPOBatch with
+        # leading dim U over update steps.
+        # Shapes: (U, BATCH_SIZE, ...)
+        # --------------------------------------------------------
+        mb_obs = batch.obs[all_mb_indices]            # (U,B,...)
+        mb_time = batch.time[all_mb_indices]
+        mb_actions = batch.actions[all_mb_indices]
+        mb_logp = batch.logp_old[all_mb_indices]
+        mb_values = batch.values_old[all_mb_indices]
+        mb_returns = batch.returns[all_mb_indices]
+        mb_advantages = batch.advantages[all_mb_indices]
+
+        batches_seq = PPOBatch(
+            obs=mb_obs,
+            time=mb_time,
+            actions=mb_actions,
+            logp_old=mb_logp,
+            values_old=mb_values,
+            returns=mb_returns,
+            advantages=mb_advantages,
+        )
+
+        # --------------------------------------------------------
+        # Single jitted scan over all SGD steps
+        # --------------------------------------------------------
+        gate_params, opt_state, metrics_seq = ppo_update_many(
+            gate_params, opt_state, batches_seq
+        )
+
+        # metrics_seq is a dict of arrays, each (U,)
+        metrics_avg = {k: float(jnp.mean(v)) for k, v in metrics_seq.items()}
+
 
         # Build wandb log dict
         log_dict = {
