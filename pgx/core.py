@@ -341,6 +341,10 @@ def make(env_id: EnvId):  # noqa: C901
         from pgx.chess import Chess
 
         return Chess()
+    elif env_id == "gardner_chess":
+        from pgx.gardner_chess import GardnerChess
+
+        return GardnerChess()
     else:
         envs = "\n".join(available_envs())
         raise ValueError(f"Wrong env_id '{env_id}' is passed. Available ids are: \n{envs}")
