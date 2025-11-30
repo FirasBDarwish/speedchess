@@ -14,11 +14,8 @@ from pydantic import BaseModel
 from tqdm import trange
 import wandb
 
-from jax import debug as jdebug  # for optional jax.debug.print
-
 from speed_gardner_chess import (
     GardnerChess,
-    MAX_TERMINATION_STEPS,
     _step_board,   # pure board step for MCTS
     _observe,      # board-only observation
 )
@@ -56,7 +53,7 @@ COST_32 = 32
 TRAJ_LOG_INTERVAL = 50
 
 # Gate checkpoint directory
-GATE_CKPT_ROOT = "./gate_checkpoints"
+GATE_CKPT_ROOT = "./gate_checkpoints_j2"
 
 
 # ================================================================
@@ -346,8 +343,6 @@ def make_ppo_loss_fn():
         )  # logits: (...,2), values: (...)
 
         log_probs = jax.nn.log_softmax(logits, axis=-1)
-        gather_idx = jnp.arange(batch.actions.shape[-1]) if batch.actions.ndim == 2 else jnp.arange(batch.actions.shape[0])
-        # Handle both (T,B) and (T,) shapes via broadcasting
         logp = jnp.take_along_axis(
             log_probs,
             batch.actions[..., None],
@@ -394,20 +389,20 @@ def make_ppo_loss_fn():
 
 
 # ================================================================
-# 6. Helper: build PPOBatch + rollout stats + histograms from traj
+# 6. Helper: build PPOBatch + rollout stats + per-episode info
 # ================================================================
 
-def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
+def build_batch_and_stats(traj: Dict[str, jnp.ndarray], default_time: float):
     """
     traj keys:
       obs:    (T,5,5,115)
-      time:   (T,2)
-      action: (T,)
+      time:   (T,2)   -- normalized [my_time/default_time, opp_time/default_time]
+      action: (T,)    -- 0 for nsim=8, 1 for nsim=32
       logp:   (T,)
       value:  (T,)
-      reward: (T,)
+      reward: (T,)    -- nonzero only at terminal
       done:   (T,)
-      player: (T,)
+      player: (T,)    -- player who moved (0/1)
     """
     obs_arr = traj["obs"]
     time_arr = traj["time"]
@@ -437,7 +432,7 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
         advantages=advantages,
     )
 
-    # ---------- Stats + hist on host ----------
+    # ---------- Stats + episode recon on host ----------
     actions_np = np.array(actions_arr, dtype=np.int32)
     players_np = np.array(players_arr, dtype=np.int32)
     dones_np = np.array(dones_arr > 0.5, dtype=bool)
@@ -512,7 +507,7 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
         }
     )
 
-    # ---------- Reconstruct episode traces + win/loss/draw + hist ----------
+    # ---------- Reconstruct episode traces + win/loss/draw + time + per-move nsim ----------
     ep_traces: List[dict] = []
     hist_vals_8: List[int] = []
     hist_vals_32: List[int] = []
@@ -521,26 +516,44 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
     losses_p0 = 0
     draws = 0
 
+    final_times_p0: List[float] = []
+    final_times_p1: List[float] = []
+
     if len(done_idx) > 0:
         start = 0
         for idx in done_idx:
             steps: List[dict] = []
+
+            # Reconstruct clock for this episode from default_time
+            time_left = np.array([default_time, default_time], dtype=np.float32)
+
             for t in range(start, idx + 1):
                 local_move_idx = t - start
                 a = int(actions_np[t])
+
+                # For hist: which move index used which nsim?
                 if a == 0:
                     hist_vals_8.append(local_move_idx)
+                    cost = COST_8
                 else:
                     hist_vals_32.append(local_move_idx)
+                    cost = COST_32
+
+                p = int(players_np[t])
+                time_left[p] -= cost
 
                 steps.append(
                     {
-                        "player": int(players_np[t]),
-                        "action": a,
-                        "my_time": float(time_np[t, 0]),
-                        "opp_time": float(time_np[t, 1]),
+                        "player": p,
+                        "action": a,  # 0->8 sims, 1->32 sims
+                        "my_time": float(time_np[t, 0]),   # normalized
+                        "opp_time": float(time_np[t, 1]),  # normalized
                     }
                 )
+
+            # Clip clocks at >=0 (if time flag)
+            final_times_p0.append(float(max(time_left[0], 0.0)))
+            final_times_p1.append(float(max(time_left[1], 0.0)))
 
             # Final outcome from rewards: reward is for prev_player at termination
             r = float(rewards_np[idx])
@@ -579,13 +592,16 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
             )
             start = idx + 1
 
-    if len(done_idx) > 0:
         num_games = len(done_idx)
         stats.update(
             {
                 "win_rate_p0": wins_p0 / num_games,
                 "loss_rate_p0": losses_p0 / num_games,
                 "draw_rate": draws / num_games,
+                "avg_final_time_p0": float(np.mean(final_times_p0)),
+                "avg_final_time_p1": float(np.mean(final_times_p1)),
+                "avg_final_time_p0_norm": float(np.mean(final_times_p0)) / default_time,
+                "avg_final_time_p1_norm": float(np.mean(final_times_p1)) / default_time,
             }
         )
     else:
@@ -594,6 +610,10 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
                 "win_rate_p0": 0.0,
                 "loss_rate_p0": 0.0,
                 "draw_rate": 0.0,
+                "avg_final_time_p0": 0.0,
+                "avg_final_time_p1": 0.0,
+                "avg_final_time_p0_norm": 0.0,
+                "avg_final_time_p1_norm": 0.0,
             }
         )
 
@@ -817,6 +837,7 @@ def rollout_selfplay(
     gate_params,
     rng_key,
     num_steps: int,
+    default_time: float,
 ):
     """
     Wrapper: calls jitted rollout_core, then builds PPOBatch + stats + episode traces + hist.
@@ -825,7 +846,9 @@ def rollout_selfplay(
         state, gate_params, rng_key, num_steps
     )
 
-    batch, stats, ep_traces, hist_vals_8, hist_vals_32 = build_batch_and_stats(traj)
+    batch, stats, ep_traces, hist_vals_8, hist_vals_32 = build_batch_and_stats(
+        traj, default_time
+    )
     return state_final, rng_final, batch, stats, ep_traces, hist_vals_8, hist_vals_32
 
 
@@ -983,6 +1006,7 @@ def main():
             gate_params,
             rng,
             ROLLOUT_STEPS,
+            default_time,
         )
 
         # Shuffle batch and do minibatch PPO via single scan
@@ -1026,7 +1050,7 @@ def main():
         metrics_avg = {k: float(jnp.mean(v)) for k, v in metrics_seq.items()}
 
         # --------------------------
-        # Optional: random baseline & checkpointing every 10%
+        # Random baseline & checkpointing every 10%
         # --------------------------
         random_stats = None
         if update % SAVE_INTERVAL == 0:
@@ -1066,7 +1090,7 @@ def main():
             state_eval, rng, traj_random = rollout_core_random_jit(
                 state_eval, gate_params, rng, ROLLOUT_STEPS
             )
-            _, random_stats, _, _, _ = build_batch_and_stats(traj_random)
+            _, random_stats, _, _, _ = build_batch_and_stats(traj_random, default_time)
 
         # Build wandb log dict
         log_dict: Dict[str, Any] = {
@@ -1091,9 +1115,13 @@ def main():
             "rollout/win_rate_p0": roll_stats["win_rate_p0"],
             "rollout/loss_rate_p0": roll_stats["loss_rate_p0"],
             "rollout/draw_rate": roll_stats["draw_rate"],
+            "rollout/avg_final_time_p0": roll_stats["avg_final_time_p0"],
+            "rollout/avg_final_time_p1": roll_stats["avg_final_time_p1"],
+            "rollout/avg_final_time_p0_norm": roll_stats["avg_final_time_p0_norm"],
+            "rollout/avg_final_time_p1_norm": roll_stats["avg_final_time_p1_norm"],
         }
 
-        # Histograms: move index where nsim=8 / nsim=32 were used
+        # Histograms: move index where nsim=8 / nsim=32 were used (across all games)
         if hist_vals_8.size > 0:
             log_dict["rollout/hist_move_idx_8"] = wandb.Histogram(hist_vals_8)
         if hist_vals_32.size > 0:
@@ -1111,22 +1139,35 @@ def main():
                 }
             )
 
-        # Sample game trajectory (text) occasionally
+        # Sample *single* game: move index -> nsim & time
         if (update % TRAJ_LOG_INTERVAL == 0) and len(ep_traces) > 0:
-            sample_ep = ep_traces[0]  # could random.choice if you prefer
+            sample_ep = ep_traces[0]
+            steps = sample_ep["steps"]
+            L = len(steps)
+            moves_idx = list(range(L))
+            sims = [8 if s["action"] == 0 else 32 for s in steps]
+            my_time_ticks = [s["my_time"] * default_time for s in steps]
+            opp_time_ticks = [s["opp_time"] * default_time for s in steps]
+
             lines = [
                 "Result P0={:.1f}, P1={:.1f}".format(
                     sample_ep["result_p0"], sample_ep["result_p1"]
                 )
             ]
-            for i, step in enumerate(sample_ep["steps"][:60]):
+            for i, s in enumerate(steps):
                 lines.append(
-                    f"{i:02d} | P{step['player']} | "
-                    f"nsim={8 if step['action'] == 0 else 32} | "
-                    f"my_t={step['my_time']:.2f} opp_t={step['opp_time']:.2f}"
+                    f"{i:02d} | P{s['player']} | "
+                    f"nsim={8 if s['action'] == 0 else 32} | "
+                    f"my_t={s['my_time']:.2f} opp_t={s['opp_time']:.2f}"
                 )
             traj_text = "\n".join(lines)
+
             log_dict["debug/sample_game"] = traj_text
+            log_dict["debug/sample_moves_idx"] = moves_idx
+            log_dict["debug/sample_sims"] = sims
+            log_dict["debug/sample_my_time_ticks"] = my_time_ticks
+            log_dict["debug/sample_opp_time_ticks"] = opp_time_ticks
+            log_dict["debug/sample_num_moves"] = L
 
         wandb.log(log_dict, step=update)
 

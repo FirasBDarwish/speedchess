@@ -1,0 +1,10 @@
+wandb: Currently logged in as: aneeshmuppidi19. Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.23.0 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.17.0
+wandb: Run data is saved locally in /n/home04/amuppidi/speedchess/examples/alphazero/wandb/run-20251129_193624-u5hzdim4
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run gate_speed_gardner_selfplay
+wandb: ⭐️ View project at https://wandb.ai/aneeshmuppidi19/pgx-speed-gate
+wandb: 🚀 View run at https://wandb.ai/aneeshmuppidi19/pgx-speed-gate/runs/u5hzdim4
+PPO updates:   0%|          | 0/1000 [00:00<?, ?it/s]PPO updates:   0%|          | 1/1000 [00:44<12:18:28, 44.35s/it]PPO updates:   0%|          | 2/1000 [01:03<8:10:46, 29.51s/it] PPO updates:   0%|          | 3/1000 [01:20<6:36:55, 23.89s/it]PPO updates:   0%|          | 4/1000 [01:36<5:44:11, 20.73s/it]PPO updates:   0%|          | 5/1000 [01:50<5:05:32, 18.42s/it]PPO updates:   1%|          | 6/1000 [02:04<4:36:25, 16.69s/it]PPO updates:   1%|          | 7/1000 [02:16<4:13:55, 15.34s/it]PPO updates:   1%|          | 8/1000 [02:28<3:56:47, 14.32s/it]PPO updates:   1%|          | 9/1000 [02:41<3:46:19, 13.70s/it]PPO updates:   1%|          | 10/1000 [02:53<3:39:51, 13.32s/it]PPO updates:   1%|          | 11/1000 [03:06<3:36:28, 13.13s/it]PPO updates:   1%|          | 12/1000 [03:18<3:29:50, 12.74s/it]PPO updates:   1%|▏         | 13/1000 [03:30<3:25:52, 12.52s/it]PPO updates:   1%|▏         | 14/1000 [03:42<3:22:43, 12.34s/it]PPO updates:   2%|▏         | 15/1000 [03:53<3:19:45, 12.17s/it]PPO updates:   2%|▏         | 16/1000 [04:05<3:17:30, 12.04s/it]PPO updates:   2%|▏         | 17/1000 [04:17<3:16:13, 11.98s/it]PPO updates:   2%|▏         | 18/1000 [04:29<3:17:01, 12.04s/it]PPO updates:   2%|▏         | 19/1000 [04:41<3:17:11, 12.06s/it]PPO updates:   2%|▏         | 20/1000 [04:53<3:15:26, 11.97s/it]
