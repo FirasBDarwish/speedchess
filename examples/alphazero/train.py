@@ -40,7 +40,7 @@ num_devices = len(devices)
 class Config(BaseModel):
     env_id: pgx.EnvId = "gardner_chess"
     seed: int = 0
-    max_num_iters: int = 400
+    max_num_iters: int = 800
     # network params
     num_channels: int = 128
     num_layers: int = 6
@@ -54,6 +54,8 @@ class Config(BaseModel):
     learning_rate: float = 0.001
     # eval params
     eval_interval: int = 5
+    save_interval: int = 200
+    save_dir: str = "/n/home04/amuppidi/speedchess/examples/alphazero/nsims_checkpoints"
 
     class Config:
         extra = "forbid"
@@ -312,11 +314,12 @@ if __name__ == "__main__":
 
     # Prepare checkpoint dir (include num_simulations in folder name)
     ckpt_dir = os.path.join(
-        "checkpoints",
+        config.save_dir,
         f"nsim_{config.num_simulations}",
         f"{config.env_id}_{now}",
     )
-    os.makedirs(ckpt_dir, exist_ok=True)
+    if not os.path.exists(ckpt_dir):
+        os.makedirs(ckpt_dir)
 
     # Initialize logging dict
     iteration: int = 0
@@ -340,6 +343,7 @@ if __name__ == "__main__":
                 }
             )
 
+        if iteration % config.save_interval == 0:
             # Store checkpoints
             model_0, opt_state_0 = jax.tree_util.tree_map(
                 lambda x: x[0], (model, opt_state)
@@ -358,6 +362,7 @@ if __name__ == "__main__":
                     "env_version": env.version,
                 }
                 pickle.dump(dic, f)
+            print(f"Saved checkpoint to {ckpt_dir}/{iteration:06d}.ckpt")
 
         print(log)
         wandb.log(log)

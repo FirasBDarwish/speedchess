@@ -15,3 +15,8 @@ wandb
 checkpoints
 __pycache__
 tests/assets/*/*.svg
+examples/alphazero/gate_checkpoints/
+examples/alphazero/gate_checkpoints*/
+examples/alphazero/gate_eval_games_gif/
+examples/alphazero/slurm-alphazero_*.out
+examples/alphazero/slurm-alphazero_*.err

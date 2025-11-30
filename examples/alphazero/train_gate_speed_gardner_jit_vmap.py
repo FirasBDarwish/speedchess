@@ -16,8 +16,10 @@ import wandb
 
 from speed_gardner_chess import (
     GardnerChess,
+    MAX_TERMINATION_STEPS,
     _step_board,   # pure board step for MCTS
     _observe,      # board-only observation
+    DEFAULT_TIME,  # 300 ticks per player
 )
 from network import AZNet
 
@@ -33,15 +35,9 @@ BASE_NSIMS = [8, 32]               # gate chooses between nsim=8 and nsim=32
 
 SEED = 0
 
-# Multi-env rollout parameters
-NUM_ENVS = 32                      # parallel speed-chess envs
-
 # PPO hyperparams
 NUM_UPDATES = 1000                 # training iterations
-ROLLOUT_STEPS_TOTAL = 2048         # total gating decisions per PPO update (across all envs)
-assert ROLLOUT_STEPS_TOTAL % NUM_ENVS == 0, "ROLLOUT_STEPS_TOTAL must be divisible by NUM_ENVS"
-STEPS_PER_ENV = ROLLOUT_STEPS_TOTAL // NUM_ENVS  # time steps per env per update
-
+ROLLOUT_STEPS = 2048               # TOTAL gating decisions per update (across envs)
 GAMMA = 0.99
 LAMBDA = 0.95
 PPO_EPOCHS = 4
@@ -51,12 +47,20 @@ PPO_VF_COEF = 0.5
 PPO_ENT_COEF = 0.01
 BATCH_SIZE = 256                   # minibatch size for PPO
 
-# Tick costs = number of MCTS simulations
+# Number of parallel envs (vmap)
+NUM_ENVS = 32                      # tune this for your hardware
+assert ROLLOUT_STEPS % NUM_ENVS == 0, "ROLLOUT_STEPS must be divisible by NUM_ENVS"
+STEPS_PER_ENV = ROLLOUT_STEPS // NUM_ENVS
+
+# Tick costs = number of MCTS simulations (used as "time spent" on clock)
 COST_8 = 8
 COST_32 = 32
 
 # How often to log a sample game trajectory to wandb
 TRAJ_LOG_INTERVAL = 50
+
+# Gating checkpoint directory
+GATE_CKPT_DIR = "gate_checkpoints_v"
 
 
 # ================================================================
@@ -236,6 +240,7 @@ class GateNet(hk.Module):
         x = obs.astype(jnp.float32)           # (B,5,5,115)
         x = jnp.moveaxis(x, -1, 1)            # (B,115,5,5)
 
+        # Small conv trunk
         conv = hk.Sequential([
             hk.Conv2D(output_channels=64, kernel_shape=3, padding="SAME"),
             jax.nn.relu,
@@ -245,6 +250,7 @@ class GateNet(hk.Module):
         ])
         z = conv(x)                           # (B, hidden)
 
+        # Concatenate normalized times
         z = jnp.concatenate([z, time_left_norm], axis=-1)  # (B, hidden+2)
 
         h = hk.Linear(128)(z)
@@ -278,6 +284,7 @@ class PPOBatch:
     returns: jnp.ndarray     # (T*,)
     advantages: jnp.ndarray  # (T*,)
 
+    # Tell JAX how to treat this as a pytree
     def tree_flatten(self):
         children = (
             self.obs,
@@ -306,28 +313,31 @@ class PPOBatch:
 
 
 @jax.jit
-def compute_gae_1d(rewards, values, dones, gamma, lam):
+def compute_gae(rewards, values, dones, gamma, lam):
     """
-    1D GAE:
-      rewards, values, dones: (T,)
-    Returns: returns, advantages
+    rewards, values, dones: (T, B)
+    Returns: returns, advantages (both (T,B))
     """
+    # Reverse for backward scan
     rev_rewards = rewards[::-1]
     rev_values = values[::-1]
     rev_dones = dones[::-1]
 
     def body_fn(carry, inp):
-        next_value, next_adv = carry
-        r, v, d = inp
+        next_value, next_adv = carry        # (B,), (B,)
+        r, v, d = inp                       # (B,), (B,), (B,)
         mask = 1.0 - d
         delta = r + gamma * next_value * mask - v
         adv = delta + gamma * lam * mask * next_adv
         ret = adv + v
         return (v, adv), (ret, adv)
 
+    init_value = jnp.zeros_like(values[0])  # (B,)
+    init_adv = jnp.zeros_like(values[0])    # (B,)
+
     (_, _), (rev_returns, rev_advantages) = jax.lax.scan(
         body_fn,
-        (0.0, 0.0),
+        (init_value, init_adv),
         (rev_rewards, rev_values, rev_dones),
     )
 
@@ -345,18 +355,23 @@ def make_ppo_loss_fn():
         log_probs = jax.nn.log_softmax(logits, axis=-1)
         logp = log_probs[jnp.arange(batch.actions.shape[0]), batch.actions]  # (T*,)
 
+        # Ratio
         ratios = jnp.exp(logp - batch.logp_old)
 
+        # Normalize advantages
         adv_mean = jnp.mean(batch.advantages)
         adv_std = jnp.std(batch.advantages) + 1e-8
         adv_norm = (batch.advantages - adv_mean) / adv_std
 
+        # Clipped surrogate objective
         unclipped = ratios * adv_norm
         clipped = jnp.clip(ratios, 1.0 - PPO_CLIP_EPS, 1.0 + PPO_CLIP_EPS) * adv_norm
         policy_loss = -jnp.mean(jnp.minimum(unclipped, clipped))
 
+        # Value loss
         value_loss = jnp.mean((batch.returns - values) ** 2)
 
+        # Entropy
         probs = jnp.exp(log_probs)
         entropy = -jnp.mean(jnp.sum(probs * log_probs, axis=-1))
 
@@ -385,15 +400,15 @@ def make_ppo_loss_fn():
 
 def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
     """
-    traj keys (T_env, B, ...):
-      obs:    (T_env,B,5,5,115)
-      time:   (T_env,B,2)
-      action: (T_env,B)
-      logp:   (T_env,B)
-      value:  (T_env,B)
-      reward: (T_env,B)
-      done:   (T_env,B)
-      player: (T_env,B)
+    traj keys (T, B, ...):
+      obs:    (T,B,5,5,115)
+      time:   (T,B,2)
+      action: (T,B)
+      logp:   (T,B)
+      value:  (T,B)
+      reward: (T,B)
+      done:   (T,B)
+      player: (T,B)
     """
     obs_arr = traj["obs"]        # (T,B,5,5,115)
     time_arr = traj["time"]      # (T,B,2)
@@ -404,29 +419,26 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
     dones_arr = traj["done"]     # (T,B)
     players_arr = traj["player"] # (T,B)
 
-    T_env, B = actions_arr.shape
+    T, B = actions_arr.shape
 
-    # --------- GAE per env (on device) ---------
-    dones_f = dones_arr.astype(jnp.float32)
+    # Compute returns and advantages (on device)
+    returns, advantages = compute_gae(
+        rewards_arr,
+        values_arr,
+        dones_arr.astype(jnp.float32),
+        GAMMA,
+        LAMBDA,
+    )  # (T,B)
 
-    def gae_per_env(r, v, d):
-        return compute_gae_1d(r, v, d, GAMMA, LAMBDA)
-
-    returns_arr, advantages_arr = jax.vmap(
-        gae_per_env,
-        in_axes=(1, 1, 1),
-        out_axes=(1, 1),
-    )(rewards_arr, values_arr, dones_f)  # (T_env,B)
-
-    # --------- Flatten for PPO (T* = T_env * B) ---------
-    T_star = T_env * B
+    # Flatten (T,B) -> (T*,)
+    T_star = T * B
     obs_flat = obs_arr.reshape(T_star, 5, 5, 115)
     time_flat = time_arr.reshape(T_star, 2)
     actions_flat = actions_arr.reshape(T_star)
     logp_flat = logp_arr.reshape(T_star)
     values_flat = values_arr.reshape(T_star)
-    returns_flat = returns_arr.reshape(T_star)
-    advantages_flat = advantages_arr.reshape(T_star)
+    returns_flat = returns.reshape(T_star)
+    advantages_flat = advantages.reshape(T_star)
 
     batch = PPOBatch(
         obs=obs_flat,
@@ -439,17 +451,17 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
     )
 
     # ---------- Stats on host ----------
-    rewards_np = np.array(rewards_arr, dtype=np.float32)   # (T_env,B)
-    dones_np = np.array(dones_arr > 0.5, dtype=bool)       # (T_env,B)
-    actions_np = np.array(actions_arr, dtype=np.int32)     # (T_env,B)
-    players_np = np.array(players_arr, dtype=np.int32)     # (T_env,B)
-    adv_np = np.array(advantages_arr, dtype=np.float32)    # (T_env,B)
-    ret_np = np.array(returns_arr, dtype=np.float32)       # (T_env,B)
-    time_np = np.array(time_arr, dtype=np.float32)         # (T_env,B,2)
+    actions_np = np.array(actions_arr, dtype=np.int32)   # (T,B)
+    players_np = np.array(players_arr, dtype=np.int32)   # (T,B)
+    dones_np = np.array(dones_arr > 0.5, dtype=bool)     # (T,B)
+    rewards_np = np.array(rewards_arr, dtype=np.float32) # (T,B)
+    adv_np = np.array(advantages, dtype=np.float32)      # (T,B)
+    ret_np = np.array(returns, dtype=np.float32)         # (T,B)
+    time_np = np.array(time_arr, dtype=np.float32)       # (T,B,2)
 
     # Episode stats per env
-    ep_lens: List[int] = []
-    ep_returns: List[float] = []
+    ep_lens_list: List[int] = []
+    ep_returns_list: List[float] = []
 
     for b in range(B):
         done_idx = np.where(dones_np[:, b])[0]
@@ -458,26 +470,26 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
         start = 0
         for idx in done_idx:
             length = idx - start + 1
-            ep_lens.append(length)
-            ep_returns.append(float(rewards_np[start:idx + 1, b].sum()))
+            ep_lens_list.append(length)
+            ep_returns_list.append(float(rewards_np[start:idx + 1, b].sum()))
             start = idx + 1
 
-    if len(ep_lens) == 0:
-        ep_lens_arr = np.array([T_env], dtype=np.int32)
-        ep_returns_arr = np.array([rewards_np.sum()], dtype=np.float32)
+    if len(ep_lens_list) == 0:
+        ep_lens = np.array([T], dtype=np.int32)
+        ep_returns = np.array([rewards_np.sum()], dtype=np.float32)
     else:
-        ep_lens_arr = np.array(ep_lens, dtype=np.int32)
-        ep_returns_arr = np.array(ep_returns, dtype=np.float32)
+        ep_lens = np.array(ep_lens_list, dtype=np.int32)
+        ep_returns = np.array(ep_returns_list, dtype=np.float32)
 
     stats: Dict[str, float] = {
-        "mean_ep_return": float(ep_returns_arr.mean()),
-        "mean_ep_len": float(ep_lens_arr.mean()),
+        "mean_ep_return": float(ep_returns.mean()),
+        "mean_ep_len": float(ep_lens.mean()),
     }
 
     # Action usage stats (flatten over time & envs)
     actions_flat_np = actions_np.reshape(-1)
     players_flat_np = players_np.reshape(-1)
-    total_steps = max(1, actions_flat_np.shape[0])
+    total_steps = max(1, len(actions_flat_np))
 
     rate_8 = float((actions_flat_np == 0).sum() / total_steps)
     rate_32 = float((actions_flat_np == 1).sum() / total_steps)
@@ -499,10 +511,11 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
         }
     )
 
-    num_games = max(1, len(ep_lens_arr))
+    # Move counts
+    num_games = max(1, len(ep_lens))
     moves_p0 = int((players_flat_np == 0).sum())
     moves_p1 = int((players_flat_np == 1).sum())
-    avg_moves_per_game = float(ep_lens_arr.mean())
+    avg_moves_per_game = float(ep_lens.mean())
     stats.update(
         {
             "avg_moves_per_game": avg_moves_per_game,
@@ -511,6 +524,7 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
         }
     )
 
+    # Advantage / return stats
     stats.update(
         {
             "advantages_mean": float(adv_np.mean()),
@@ -520,42 +534,126 @@ def build_batch_and_stats(traj: Dict[str, jnp.ndarray]):
         }
     )
 
-    # ---------- Reconstruct episode traces for env 0 ----------
-    ep_traces: List[dict] = []
-    dones0 = dones_np[:, 0]
-    rewards0 = rewards_np[:, 0]
-    players0 = players_np[:, 0]
-    time0 = time_np[:, 0, :]
-    actions0 = actions_np[:, 0]
+    # ---------- Per-player W/L/D + avg final time on clock ----------
+    wins_p0 = losses_p0 = draws_p0 = 0
+    wins_p1 = losses_p1 = draws_p1 = 0
+    final_time0_list: List[float] = []
+    final_time1_list: List[float] = []
+    num_games_total = 0
 
-    done_idx0 = np.where(dones0)[0]
-    if len(done_idx0) > 0:
+    for b in range(B):
+        done_idx = np.where(dones_np[:, b])[0]
+        if len(done_idx) == 0:
+            continue
         start = 0
-        for idx in done_idx0[:3]:
+        time0 = float(DEFAULT_TIME)
+        time1 = float(DEFAULT_TIME)
+        for idx in done_idx:
+            # accumulate time usage within this episode
+            for t in range(start, idx + 1):
+                p = int(players_np[t, b])
+                a = int(actions_np[t, b])
+                cost = COST_8 if a == 0 else COST_32
+                if p == 0:
+                    time0 -= cost
+                else:
+                    time1 -= cost
+
+            # final times at end of episode
+            final_time0_list.append(time0)
+            final_time1_list.append(time1)
+            num_games_total += 1
+
+            # outcome for players
+            r = float(rewards_np[idx, b])
+            mover = int(players_np[idx, b])
+            eps = 1e-6
+            if abs(r) <= eps:
+                draws_p0 += 1
+                draws_p1 += 1
+            elif r > 0:
+                if mover == 0:
+                    wins_p0 += 1
+                    losses_p1 += 1
+                else:
+                    wins_p1 += 1
+                    losses_p0 += 1
+            else:  # r < 0
+                if mover == 0:
+                    losses_p0 += 1
+                    wins_p1 += 1
+                else:
+                    losses_p1 += 1
+                    wins_p0 += 1
+
+            # reset clock for next episode on this env
+            time0 = float(DEFAULT_TIME)
+            time1 = float(DEFAULT_TIME)
+            start = idx + 1
+
+    if num_games_total > 0:
+        stats.update(
+            {
+                "win_rate_p0": wins_p0 / num_games_total,
+                "loss_rate_p0": losses_p0 / num_games_total,
+                "draw_rate_p0": draws_p0 / num_games_total,
+                "win_rate_p1": wins_p1 / num_games_total,
+                "loss_rate_p1": losses_p1 / num_games_total,
+                "draw_rate_p1": draws_p1 / num_games_total,
+                "avg_final_time_p0": float(np.mean(final_time0_list)),
+                "avg_final_time_p1": float(np.mean(final_time1_list)),
+            }
+        )
+    else:
+        stats.update(
+            {
+                "win_rate_p0": 0.0,
+                "loss_rate_p0": 0.0,
+                "draw_rate_p0": 0.0,
+                "win_rate_p1": 0.0,
+                "loss_rate_p1": 0.0,
+                "draw_rate_p1": 0.0,
+                "avg_final_time_p0": float(DEFAULT_TIME),
+                "avg_final_time_p1": float(DEFAULT_TIME),
+            }
+        )
+
+    # ---------- Reconstruct some episode traces for debug ----------
+    ep_traces: List[dict] = []
+    # just log from env 0 for simplicity
+    done_idx_0 = np.where(dones_np[:, 0])[0]
+    if len(done_idx_0) > 0:
+        start = 0
+        for idx in done_idx_0[:3]:  # at most a few episodes
             steps: List[dict] = []
             for t in range(start, idx + 1):
                 steps.append(
                     {
-                        "player": int(players0[t]),
-                        "action": int(actions0[t]),
-                        "my_time": float(time0[t, 0]),
-                        "opp_time": float(time0[t, 1]),
+                        "player": int(players_np[t, 0]),
+                        "action": int(actions_np[t, 0]),
+                        "my_time": float(time_np[t, 0, 0]),
+                        "opp_time": float(time_np[t, 0, 1]),
                     }
                 )
-            r = float(rewards0[idx])
-            mover = int(players0[idx])
+            r = float(rewards_np[idx, 0])
+            mover = int(players_np[idx, 0])
             if r > 0:
                 if mover == 0:
-                    result_p0, result_p1 = 1.0, -1.0
+                    result_p0 = 1.0
+                    result_p1 = -1.0
                 else:
-                    result_p0, result_p1 = -1.0, 1.0
+                    result_p0 = -1.0
+                    result_p1 = 1.0
             elif r < 0:
                 if mover == 0:
-                    result_p0, result_p1 = -1.0, 1.0
+                    result_p0 = -1.0
+                    result_p1 = 1.0
                 else:
-                    result_p0, result_p1 = 1.0, -1.0
+                    result_p0 = 1.0
+                    result_p1 = -1.0
             else:
-                result_p0 = result_p1 = 0.0
+                result_p0 = 0.0
+                result_p1 = 0.0
 
             ep_traces.append(
                 {
@@ -585,117 +683,500 @@ def make_rollout_core(
 
     def rollout_core(state, gate_params, rng_key, num_steps: int):
         """
-        Jitted self-play rollout using jax.lax.scan over time
-        and vmap over NUM_ENVS parallel environments.
-
-        state: batched GardnerChess.State with leading axis NUM_ENVS
+        Jitted self-play rollout using jax.lax.scan.
+        state: batched State with leading dim NUM_ENVS
         """
-        batch_size = state.current_player.shape[0]
-        assert batch_size == NUM_ENVS, "state batch size must equal NUM_ENVS"
 
-        def one_step(carry, _):
-            state, rng = carry
+        num_envs = NUM_ENVS
 
-            rng, key_reset, key_gate, key_mcts = jax.random.split(rng, 4)
+        def env_reset(key):
+            return env_speed.init(key)
+
+        def step_fn(carry, _):
+            state, rng = carry  # state is batched (B, ...)
+
+            # Split RNG
+            rng, key_reset, key_gate, key_mcts8, key_mcts32 = jax.random.split(rng, 5)
 
             # Reset envs that were terminal/truncated
-            done_prev = state.terminated | state.truncated  # (N,)
+            done_prev = state.terminated | state.truncated   # (B,)
+            keys_reset = jax.random.split(key_reset, num_envs)
 
-            reset_keys = jax.random.split(key_reset, NUM_ENVS)
-            reset_states = jax.vmap(env_speed.init)(reset_keys)
+            def reset_one(s, k, d):
+                # both branches return a State
+                return jax.lax.cond(
+                    d,
+                    lambda _: env_reset(k),
+                    lambda _: s,
+                    operand=None,
+                )
 
-            def mix_leaf(old, new):
-                if old.ndim == 0:
-                    return old
-                expand = (1,) * (old.ndim - 1)
-                mask = done_prev.reshape((-1,) + expand)
-                return jnp.where(mask, new, old)
+            state = jax.vmap(reset_one)(state, keys_reset, done_prev)
 
-            state = jax.tree_util.tree_map(mix_leaf, state, reset_states)
+            # Side-to-move observation
+            obs = state.observation               # (B,5,5,115)
+            time_left = state.time_left           # (B,2)
+            cur = state.current_player            # (B,)
 
-            # Side-to-move observation & times
-            obs = state.observation               # (N,5,5,115)
-            time_left = state.time_left           # (N,2)
-            cur = state.current_player            # (N,)
+            # Normalize times
+            cur_idx = cur[:, None]
+            opp_idx = (1 - cur)[:, None]
+            my_time = jnp.take_along_axis(time_left, cur_idx, axis=1)[:, 0]
+            opp_time = jnp.take_along_axis(time_left, opp_idx, axis=1)[:, 0]
 
-            idxs = jnp.arange(NUM_ENVS)
-            my_time = time_left[idxs, cur]
-            opp_time = time_left[idxs, 1 - cur]
             time_norm = jnp.stack(
                 [my_time / default_time_f32, opp_time / default_time_f32],
                 axis=1,
-            )                                     # (N,2)
+            )  # (B,2)
 
             # -------- Gate decision (batched) --------
             logits, value = gate_forward.apply(gate_params, obs, time_norm)
-            log_probs = jax.nn.log_softmax(logits, axis=-1)
+            # logits: (B,2), value: (B,)
 
-            gate_actions = jax.random.categorical(key_gate, logits, axis=-1)  # (N,)
-            logp = log_probs[idxs, gate_actions]                               # (N,)
+            log_probs = jax.nn.log_softmax(logits, axis=-1)
+            gate_action = jax.random.categorical(key_gate, logits, axis=-1)  # (B,)
+            batch_idx = jnp.arange(num_envs)
+            logp = log_probs[batch_idx, gate_action]                         # (B,)
 
             # -------- Execute move via chosen MCTS per env --------
-            key_mcts_env = jax.random.split(key_mcts, NUM_ENVS)
+            key_mcts_env8 = jax.random.split(key_mcts8, num_envs)
+            key_mcts_env32 = jax.random.split(key_mcts32, num_envs)
 
-            def select_action_for_env(env_state, gate_action, k_mcts):
-                env_state_b = jax.tree_util.tree_map(lambda x: x[None, ...], env_state)
+            def run_mcts_for_env(s, g, k8, k32):
+                s_b = jax.tree_util.tree_map(lambda x: x[None, ...], s)
 
-                def run_8(_):
-                    a = select_mcts_8(model_8, env_state_b, k_mcts)[0]
+                def run8(_):
+                    a = select_mcts_8(model_8, s_b, k8)[0]
                     return a, jnp.int32(COST_8)
 
-                def run_32(_):
-                    a = select_mcts_32(model_32, env_state_b, k_mcts)[0]
+                def run32(_):
+                    a = select_mcts_32(model_32, s_b, k32)[0]
                     return a, jnp.int32(COST_32)
 
                 return jax.lax.cond(
-                    gate_action == 0,
-                    run_8,
-                    run_32,
+                    g == 0,
+                    run8,
+                    run32,
                     operand=None,
                 )
 
             actions, time_spent = jax.vmap(
-                select_action_for_env,
-                in_axes=(0, 0, 0),
+                run_mcts_for_env,
+                in_axes=(0, 0, 0, 0),
                 out_axes=(0, 0),
-            )(state, gate_actions, key_mcts_env)  # (N,), (N,)
+            )(state, gate_action, key_mcts_env8, key_mcts_env32)
 
-            prev_player = state.current_player     # (N,)
+            prev_player = state.current_player     # (B,)
 
-            def step_one(env_state, a, ts):
-                return env_speed.step(env_state, (a, ts))
+            def step_one(env_state, a, t):
+                return env_speed.step(env_state, (a, t))
 
             state_next = jax.vmap(step_one, in_axes=(0, 0, 0))(
                 state, actions, time_spent
             )
 
-            done_after = state_next.terminated | state_next.truncated  # (N,)
-            rewards_all = state_next.rewards                           # (N,2)
+            done = (state_next.terminated | state_next.truncated).astype(jnp.float32)  # (B,)
+
+            rewards_all = state_next.rewards                           # (B,2)
             prev_idx = prev_player[:, None]
             reward_prev = jnp.take_along_axis(rewards_all, prev_idx, axis=1)[:, 0]
-            reward = jnp.where(done_after, reward_prev, jnp.float32(0.0))  # (N,)
+            reward = jnp.where(done > 0.0, reward_prev, jnp.float32(0.0))
 
+            carry_next = (state_next, rng)
             out = {
                 "obs": obs,
                 "time": time_norm,
-                "action": gate_actions,
+                "action": gate_action,
                 "logp": logp,
                 "value": value,
                 "reward": reward,
-                "done": done_after,
+                "done": done,
                 "player": prev_player,
             }
-
-            carry_next = (state_next, rng)
             return carry_next, out
 
         (state_final, rng_final), traj = jax.lax.scan(
-            one_step, (state, rng_key), xs=None, length=num_steps
+            step_fn, (state, rng_key), xs=None, length=num_steps
         )
         return state_final, rng_final, traj
 
     rollout_core_jit = jax.jit(rollout_core, static_argnums=(3,))
     return rollout_core_jit
+
+
+# Random gating rollout (for baseline evaluation)
+def make_rollout_core_random(
+    env_speed: GardnerChess,
+    select_mcts_8,
+    select_mcts_32,
+    model_8,
+    model_32,
+    default_time: float,
+):
+    default_time_f32 = jnp.float32(default_time)
+
+    def rollout_core_random(state, rng_key, num_steps: int):
+        num_envs = NUM_ENVS
+
+        def env_reset(key):
+            return env_speed.init(key)
+
+        def step_fn(carry, _):
+            state, rng = carry
+
+            rng, key_reset, key_gate, key_mcts8, key_mcts32 = jax.random.split(rng, 5)
+
+            # Reset envs that were terminal/truncated
+            done_prev = state.terminated | state.truncated   # (B,)
+            keys_reset = jax.random.split(key_reset, num_envs)
+
+            def reset_one(s, k, d):
+                return jax.lax.cond(
+                    d,
+                    lambda _: env_reset(k),
+                    lambda _: s,
+                    operand=None,
+                )
+
+            state = jax.vmap(reset_one)(state, keys_reset, done_prev)
+
+            # Side-to-move observation
+            obs = state.observation               # (B,5,5,115)
+            time_left = state.time_left           # (B,2)
+            cur = state.current_player            # (B,)
+
+            cur_idx = cur[:, None]
+            opp_idx = (1 - cur)[:, None]
+            my_time = jnp.take_along_axis(time_left, cur_idx, axis=1)[:, 0]
+            opp_time = jnp.take_along_axis(time_left, opp_idx, axis=1)[:, 0]
+
+            time_norm = jnp.stack(
+                [my_time / default_time_f32, opp_time / default_time_f32],
+                axis=1,
+            )  # (B,2)
+
+            # -------- Random gate decision (uniform over {0,1}) --------
+            gate_action = jax.random.randint(key_gate, (num_envs,), 0, 2)  # (B,)
+            # Dummy logits/logp/value so shapes match training traj structure
+            logits_dummy = jnp.zeros((num_envs, 2), dtype=jnp.float32)
+            logp = jnp.log(jnp.full((num_envs,), 0.5, dtype=jnp.float32))
+            value = jnp.zeros((num_envs,), dtype=jnp.float32)
+
+            # -------- Execute move via chosen MCTS per env --------
+            key_mcts_env8 = jax.random.split(key_mcts8, num_envs)
+            key_mcts_env32 = jax.random.split(key_mcts32, num_envs)
+
+            def run_mcts_for_env(s, g, k8, k32):
+                s_b = jax.tree_util.tree_map(lambda x: x[None, ...], s)
+
+                def run8(_):
+                    a = select_mcts_8(model_8, s_b, k8)[0]
+                    return a, jnp.int32(COST_8)
+
+                def run32(_):
+                    a = select_mcts_32(model_32, s_b, k32)[0]
+                    return a, jnp.int32(COST_32)
+
+                return jax.lax.cond(
+                    g == 0,
+                    run8,
+                    run32,
+                    operand=None,
+                )
+
+            actions, time_spent = jax.vmap(
+                run_mcts_for_env,
+                in_axes=(0, 0, 0, 0),
+                out_axes=(0, 0),
+            )(state, gate_action, key_mcts_env8, key_mcts_env32)
+
+            prev_player = state.current_player     # (B,)
+
+            def step_one(env_state, a, t):
+                return env_speed.step(env_state, (a, t))
+
+            state_next = jax.vmap(step_one, in_axes=(0, 0, 0))(
+                state, actions, time_spent
+            )
+
+            done = (state_next.terminated | state_next.truncated).astype(jnp.float32)  # (B,)
+
+            rewards_all = state_next.rewards                           # (B,2)
+            prev_idx = prev_player[:, None]
+            reward_prev = jnp.take_along_axis(rewards_all, prev_idx, axis=1)[:, 0]
+            reward = jnp.where(done > 0.0, reward_prev, jnp.float32(0.0))
+
+            carry_next = (state_next, rng)
+            out = {
+                "obs": obs,
+                "time": time_norm,
+                "action": gate_action,
+                "logp": logp,
+                "value": value,
+                "reward": reward,
+                "done": done,
+                "player": prev_player,
+            }
+            return carry_next, out
+
+        (state_final, rng_final), traj = jax.lax.scan(
+            step_fn, (state, rng_key), xs=None, length=num_steps
+        )
+        return state_final, rng_final, traj
+
+    rollout_core_random_jit = jax.jit(rollout_core_random, static_argnums=(2,))
+    return rollout_core_random_jit
+
+
+# Always-8 rollout (for baseline evaluation)
+def make_rollout_core_always8(
+    env_speed: GardnerChess,
+    select_mcts_8,
+    model_8,
+    default_time: float,
+):
+    """
+    Baseline where both players always use the nsim=8 model.
+    """
+    default_time_f32 = jnp.float32(default_time)
+
+    def rollout_core_always8(state, rng_key, num_steps: int):
+        num_envs = NUM_ENVS
+
+        def env_reset(key):
+            return env_speed.init(key)
+
+        def step_fn(carry, _):
+            state, rng = carry
+
+            rng, key_reset, key_mcts8 = jax.random.split(rng, 3)
+
+            # Reset envs that were terminal/truncated
+            done_prev = state.terminated | state.truncated   # (B,)
+            keys_reset = jax.random.split(key_reset, num_envs)
+
+            def reset_one(s, k, d):
+                return jax.lax.cond(
+                    d,
+                    lambda _: env_reset(k),
+                    lambda _: s,
+                    operand=None,
+                )
+
+            state = jax.vmap(reset_one)(state, keys_reset, done_prev)
+
+            # Side-to-move observation
+            obs = state.observation               # (B,5,5,115)
+            time_left = state.time_left           # (B,2)
+            cur = state.current_player            # (B,)
+
+            cur_idx = cur[:, None]
+            opp_idx = (1 - cur)[:, None]
+            my_time = jnp.take_along_axis(time_left, cur_idx, axis=1)[:, 0]
+            opp_time = jnp.take_along_axis(time_left, opp_idx, axis=1)[:, 0]
+
+            time_norm = jnp.stack(
+                [my_time / default_time_f32, opp_time / default_time_f32],
+                axis=1,
+            )  # (B,2)
+
+            # Gating outputs: always choose option 0 (nsim=8)
+            gate_action = jnp.zeros((num_envs,), dtype=jnp.int32)
+            logp = jnp.zeros((num_envs,), dtype=jnp.float32)
+            value = jnp.zeros((num_envs,), dtype=jnp.float32)
+
+            # Execute move via nsim=8 MCTS for all envs
+            key_mcts_env8 = jax.random.split(key_mcts8, num_envs)
+
+            def run_mcts_for_env(s, k8):
+                s_b = jax.tree_util.tree_map(lambda x: x[None, ...], s)
+                a = select_mcts_8(model_8, s_b, k8)[0]
+                return a, jnp.int32(COST_8)
+
+            actions, time_spent = jax.vmap(
+                run_mcts_for_env,
+                in_axes=(0, 0),
+                out_axes=(0, 0),
+            )(state, key_mcts_env8)
+
+            prev_player = state.current_player     # (B,)
+
+            def step_one(env_state, a, t):
+                return env_speed.step(env_state, (a, t))
+
+            state_next = jax.vmap(step_one, in_axes=(0, 0, 0))(
+                state, actions, time_spent
+            )
+
+            done = (state_next.terminated | state_next.truncated).astype(jnp.float32)  # (B,)
+
+            rewards_all = state_next.rewards                           # (B,2)
+            prev_idx = prev_player[:, None]
+            reward_prev = jnp.take_along_axis(rewards_all, prev_idx, axis=1)[:, 0]
+            reward = jnp.where(done > 0.0, reward_prev, jnp.float32(0.0))
+
+            carry_next = (state_next, rng)
+            out = {
+                "obs": obs,
+                "time": time_norm,
+                "action": gate_action,
+                "logp": logp,
+                "value": value,
+                "reward": reward,
+                "done": done,
+                "player": prev_player,
+            }
+            return carry_next, out
+
+        (state_final, rng_final), traj = jax.lax.scan(
+            step_fn, (state, rng_key), xs=None, length=num_steps
+        )
+        return state_final, rng_final, traj
+
+    rollout_core_always8_jit = jax.jit(rollout_core_always8, static_argnums=(2,))
+    return rollout_core_always8_jit
+
+
+# GateNet vs Always-8 rollout (for baseline evaluation)
+def make_rollout_core_gate_vs_8(
+    env_speed: GardnerChess,
+    select_mcts_8,
+    select_mcts_32,
+    model_8,
+    model_32,
+    default_time: float,
+):
+    """
+    Head-to-head eval: the gating policy controls player 0,
+    and the opponent (player 1) always uses nsim=8 with model_8.
+    """
+    default_time_f32 = jnp.float32(default_time)
+    gating_player = 0  # GateNet controls player 0
+
+    def rollout_core_gate_vs_8(state, gate_params, rng_key, num_steps: int):
+        num_envs = NUM_ENVS
+
+        def env_reset(key):
+            return env_speed.init(key)
+
+        def step_fn(carry, _):
+            state, rng = carry
+
+            rng, key_reset, key_gate, key_mcts8, key_mcts32 = jax.random.split(rng, 5)
+
+            # Reset envs that were terminal/truncated
+            done_prev = state.terminated | state.truncated   # (B,)
+            keys_reset = jax.random.split(key_reset, num_envs)
+
+            def reset_one(s, k, d):
+                return jax.lax.cond(
+                    d,
+                    lambda _: env_reset(k),
+                    lambda _: s,
+                    operand=None,
+                )
+
+            state = jax.vmap(reset_one)(state, keys_reset, done_prev)
+
+            # Side-to-move observation
+            obs = state.observation               # (B,5,5,115)
+            time_left = state.time_left           # (B,2)
+            cur = state.current_player            # (B,)
+
+            cur_idx = cur[:, None]
+            opp_idx = (1 - cur)[:, None]
+            my_time = jnp.take_along_axis(time_left, cur_idx, axis=1)[:, 0]
+            opp_time = jnp.take_along_axis(time_left, opp_idx, axis=1)[:, 0]
+
+            time_norm = jnp.stack(
+                [my_time / default_time_f32, opp_time / default_time_f32],
+                axis=1,
+            )  # (B,2)
+
+            # -------- Gate decision for player 0 only --------
+            logits, value_raw = gate_forward.apply(gate_params, obs, time_norm)
+            log_probs = jax.nn.log_softmax(logits, axis=-1)
+            gate_action_raw = jax.random.categorical(key_gate, logits, axis=-1)  # (B,)
+
+            gating_mask = (cur == gating_player)  # (B,)
+            gate_action = jnp.where(
+                gating_mask,
+                gate_action_raw,
+                jnp.zeros_like(gate_action_raw),
+            )
+
+            batch_idx = jnp.arange(num_envs)
+            logp_all = log_probs[batch_idx, gate_action]
+            logp = jnp.where(gating_mask, logp_all, jnp.zeros_like(logp_all))
+            value = jnp.where(gating_mask, value_raw, jnp.zeros_like(value_raw))
+
+            # -------- Execute move: gate vs always-8 --------
+            key_mcts_env8 = jax.random.split(key_mcts8, num_envs)
+            key_mcts_env32 = jax.random.split(key_mcts32, num_envs)
+
+            def run_mcts_for_env(s, g, is_gate_turn, k8, k32):
+                s_b = jax.tree_util.tree_map(lambda x: x[None, ...], s)
+
+                def run_gate(_):
+                    def run8(_):
+                        a = select_mcts_8(model_8, s_b, k8)[0]
+                        return a, jnp.int32(COST_8)
+
+                    def run32(_):
+                        a = select_mcts_32(model_32, s_b, k32)[0]
+                        return a, jnp.int32(COST_32)
+
+                    return jax.lax.cond(g == 0, run8, run32, operand=None)
+
+                def run_baseline(_):
+                    # Opponent (player 1): always nsim=8 with model_8
+                    a = select_mcts_8(model_8, s_b, k8)[0]
+                    return a, jnp.int32(COST_8)
+
+                return jax.lax.cond(is_gate_turn, run_gate, run_baseline, operand=None)
+
+            actions, time_spent = jax.vmap(
+                run_mcts_for_env,
+                in_axes=(0, 0, 0, 0, 0),
+                out_axes=(0, 0),
+            )(state, gate_action, gating_mask, key_mcts_env8, key_mcts_env32)
+
+            prev_player = state.current_player     # (B,)
+
+            def step_one(env_state, a, t):
+                return env_speed.step(env_state, (a, t))
+
+            state_next = jax.vmap(step_one, in_axes=(0, 0, 0))(
+                state, actions, time_spent
+            )
+
+            done = (state_next.terminated | state_next.truncated).astype(jnp.float32)  # (B,)
+
+            rewards_all = state_next.rewards                           # (B,2)
+            prev_idx = prev_player[:, None]
+            reward_prev = jnp.take_along_axis(rewards_all, prev_idx, axis=1)[:, 0]
+            reward = jnp.where(done > 0.0, reward_prev, jnp.float32(0.0))
+
+            carry_next = (state_next, rng)
+            out = {
+                "obs": obs,
+                "time": time_norm,
+                "action": gate_action,
+                "logp": logp,
+                "value": value,
+                "reward": reward,
+                "done": done,
+                "player": prev_player,
+            }
+            return carry_next, out
+
+        (state_final, rng_final), traj = jax.lax.scan(
+            step_fn, (state, rng_key), xs=None, length=num_steps
+        )
+        return state_final, rng_final, traj
+
+    rollout_core_gate_vs_8_jit = jax.jit(rollout_core_gate_vs_8, static_argnums=(3,))
+    return rollout_core_gate_vs_8_jit
 
 
 def rollout_selfplay(
@@ -717,7 +1198,7 @@ def rollout_selfplay(
 
 
 # ================================================================
-# 8. Jitted PPO epochs/minibatches (with dynamic_slice_in_dim)
+# 8. Jitted PPO epochs/minibatches (no dynamic slices)
 # ================================================================
 
 def make_ppo_update_epochs_fn(optimizer, value_and_grad):
@@ -729,63 +1210,65 @@ def make_ppo_update_epochs_fn(optimizer, value_and_grad):
         def one_epoch(carry, _):
             params, opt_state, rng = carry
             rng, key_perm = jax.random.split(rng)
-            idxs = jax.random.permutation(key_perm, T_star)
+            # Permute all indices, then chunk into minibatches
+            perm = jax.random.permutation(key_perm, T_star)
+            perm = perm[: num_minibatches * BATCH_SIZE]
+            perm = perm.reshape((num_minibatches, BATCH_SIZE))  # (M, BATCH_SIZE)
 
-            perm_batch = PPOBatch(
-                obs=batch.obs[idxs],
-                time=batch.time[idxs],
-                actions=batch.actions[idxs],
-                logp_old=batch.logp_old[idxs],
-                values_old=batch.values_old[idxs],
-                returns=batch.returns[idxs],
-                advantages=batch.advantages[idxs],
-            )
-
-            def slice_minibatch(x, start):
-                # x: (T_star, ...)
-                return jax.lax.dynamic_slice_in_dim(
-                    x, start_index=start, slice_size=BATCH_SIZE, axis=0
-                )
-
-            def one_minibatch(inner_carry, mb_idx):
-                params, opt_state = inner_carry
-                start = mb_idx * BATCH_SIZE
-
+            def one_minibatch(inner_carry, mb_indices):
+                params_inner, opt_state_inner = inner_carry
+                # mb_indices: (BATCH_SIZE,) integer indices into batch dimension
                 mb = PPOBatch(
-                    obs=slice_minibatch(perm_batch.obs, start),
-                    time=slice_minibatch(perm_batch.time, start),
-                    actions=slice_minibatch(perm_batch.actions, start),
-                    logp_old=slice_minibatch(perm_batch.logp_old, start),
-                    values_old=slice_minibatch(perm_batch.values_old, start),
-                    returns=slice_minibatch(perm_batch.returns, start),
-                    advantages=slice_minibatch(perm_batch.advantages, start),
+                    obs=batch.obs[mb_indices],
+                    time=batch.time[mb_indices],
+                    actions=batch.actions[mb_indices],
+                    logp_old=batch.logp_old[mb_indices],
+                    values_old=batch.values_old[mb_indices],
+                    returns=batch.returns[mb_indices],
+                    advantages=batch.advantages[mb_indices],
                 )
-
-                (loss, metrics), grads = value_and_grad(params, mb)
-                updates, opt_state = optimizer.update(grads, opt_state, params)
-                params = optax.apply_updates(params, updates)
-                return (params, opt_state), metrics
+                (loss, metrics), grads = value_and_grad(params_inner, mb)
+                updates, opt_state_inner = optimizer.update(
+                    grads, opt_state_inner, params_inner
+                )
+                params_inner = optax.apply_updates(params_inner, updates)
+                return (params_inner, opt_state_inner), metrics
 
             (params, opt_state), metrics_mb = jax.lax.scan(
                 one_minibatch,
                 (params, opt_state),
-                jnp.arange(num_minibatches),
+                perm,
             )
-
             metrics_epoch = {k: jnp.mean(v) for k, v in metrics_mb.items()}
             return (params, opt_state, rng), metrics_epoch
 
-        (params, opt_state, rng_key_out), metrics_epochs = jax.lax.scan(
+        (params, opt_state, rng_key), metrics_epochs = jax.lax.scan(
             one_epoch, (params, opt_state, rng_key), jnp.arange(PPO_EPOCHS)
         )
         metrics_final = {k: jnp.mean(v) for k, v in metrics_epochs.items()}
-        return params, opt_state, rng_key_out, metrics_final
+        return params, opt_state, rng_key, metrics_final
 
     return ppo_update_epochs
 
 
 # ================================================================
-# 9. Main training loop (self-play PPO) + wandb + tqdm
+# 9. Checkpoint helpers for gating policy
+# ================================================================
+
+def save_gate_checkpoint(path, gate_params, opt_state, update, roll_stats):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    to_save = {
+        "update": int(update),
+        "gate_params": jax.device_get(gate_params),
+        "opt_state": jax.device_get(opt_state),
+        "roll_stats": roll_stats,
+    }
+    with open(path, "wb") as f:
+        pickle.dump(to_save, f)
+
+
+# ================================================================
+# 10. Main training loop (self-play PPO) + wandb + tqdm
 # ================================================================
 
 def main():
@@ -807,6 +1290,7 @@ def main():
     if env_id_8 != BASE_ENV_ID or env_id_32 != BASE_ENV_ID:
         raise RuntimeError("Base model env_ids mismatch")
 
+    # Check architecture consistency
     if (
         cfg_8.num_layers != cfg_32.num_layers
         or cfg_8.num_channels != cfg_32.num_channels
@@ -819,9 +1303,9 @@ def main():
     # ----------------------
     env_speed = GardnerChess()
     rng = jax.random.PRNGKey(SEED)
-    rng, key_single, key_batch = jax.random.split(rng, 3)
 
     # single env just to read default_time
+    rng, key_single, key_batch = jax.random.split(rng, 3)
     single_state = env_speed.init(key_single)
     default_time = float(single_state.time_left[0])
 
@@ -857,9 +1341,31 @@ def main():
     ppo_update_epochs = make_ppo_update_epochs_fn(optimizer, value_and_grad)
 
     # ----------------------
-    # Jitted rollout core
+    # Jitted rollout cores
     # ----------------------
     rollout_core_jit = make_rollout_core(
+        env_speed,
+        select_mcts_8,
+        select_mcts_32,
+        model_8,
+        model_32,
+        default_time,
+    )
+    rollout_core_random_jit = make_rollout_core_random(
+        env_speed,
+        select_mcts_8,
+        select_mcts_32,
+        model_8,
+        model_32,
+        default_time,
+    )
+    rollout_core_always8_jit = make_rollout_core_always8(
+        env_speed,
+        select_mcts_8,
+        model_8,
+        default_time,
+    )
+    rollout_core_gate_vs_8_jit = make_rollout_core_gate_vs_8(
         env_speed,
         select_mcts_8,
         select_mcts_32,
@@ -880,7 +1386,7 @@ def main():
             "base_nsims": BASE_NSIMS,
             "seed": SEED,
             "num_updates": NUM_UPDATES,
-            "rollout_steps_total": ROLLOUT_STEPS_TOTAL,
+            "rollout_steps_total": ROLLOUT_STEPS,
             "steps_per_env": STEPS_PER_ENV,
             "num_envs": NUM_ENVS,
             "gamma": GAMMA,
@@ -894,15 +1400,24 @@ def main():
             "cost_8": COST_8,
             "cost_32": COST_32,
         },
-        name="gate_speed_gardner_selfplay_vmap",
+        name="8eval_gate_speed_gardner_selfplay_vmap",
     )
     print("initialized wandb and checkpoint loading")
+
+    # Checkpoint schedule: every 10% of updates
+    os.makedirs(GATE_CKPT_DIR, exist_ok=True)
+    ckpt_interval = max(1, NUM_UPDATES // 2)
+    best_mean_ep_return = -1e9
+
+    # Save initial (update 0) gating params
+    init_ckpt_path = os.path.join(GATE_CKPT_DIR, "gate_update_000000.pkl")
+    save_gate_checkpoint(init_ckpt_path, gate_params, opt_state, 0, {"mean_ep_return": 0.0})
 
     # ----------------------
     # Training loop
     # ----------------------
     for update in trange(1, NUM_UPDATES + 1, desc="PPO updates"):
-        # 1) Multi-env jitted rollout
+        # 1) Multi-env jitted rollout (gating policy)
         state, rng, batch, roll_stats, ep_traces = rollout_selfplay(
             rollout_core_jit,
             state,
@@ -911,44 +1426,113 @@ def main():
             STEPS_PER_ENV,
         )
 
-        # 2) Jitted PPO epochs × minibatches
+        # 2) Jitted PPO over epochs & minibatches
         rng, ppo_rng = jax.random.split(rng)
         gate_params, opt_state, rng, metrics_avg_jax = ppo_update_epochs(
             gate_params, opt_state, batch, rng
         )
-        metrics_avg = {k: float(v) for k, v in metrics_avg_jax.items()}
+        metrics_avg = {k: float(v) for k, v in jax.device_get(metrics_avg_jax).items()}
 
-        # Build wandb log dict
-        log_dict = {
-            "train/loss": metrics_avg["loss"],
-            "train/policy_loss": metrics_avg["policy_loss"],
-            "train/value_loss": metrics_avg["value_loss"],
-            "train/entropy": metrics_avg["entropy"],
-            "train/approx_kl": metrics_avg["approx_kl"],
-            "rollout/mean_ep_return": roll_stats["mean_ep_return"],
-            "rollout/mean_ep_len": roll_stats["mean_ep_len"],
-            "rollout/avg_moves_per_game": roll_stats["avg_moves_per_game"],
-            "rollout/avg_moves_p0": roll_stats["avg_moves_p0"],
-            "rollout/avg_moves_p1": roll_stats["avg_moves_p1"],
-            "rollout/action_rate_8": roll_stats["action_rate_8"],
-            "rollout/action_rate_32": roll_stats["action_rate_32"],
-            "rollout/action_rate_8_p0": roll_stats["action_rate_8_p0"],
-            "rollout/action_rate_8_p1": roll_stats["action_rate_8_p1"],
-            "rollout/advantages_mean": roll_stats["advantages_mean"],
-            "rollout/advantages_std": roll_stats["advantages_std"],
-            "rollout/returns_mean": roll_stats["returns_mean"],
-            "rollout/returns_std": roll_stats["returns_std"],
-        }
+        # 3) Possibly run evaluation + checkpoints
+        log_dict: Dict[str, Any] = {}
 
-        # Sample game trajectory (text) occasionally
+        if update % ckpt_interval == 0:
+            # --- checkpoint gating params ---
+            ckpt_path = os.path.join(GATE_CKPT_DIR, f"gate_update_{update:06d}.pkl")
+            save_gate_checkpoint(ckpt_path, gate_params, opt_state, update, roll_stats)
+
+            # --- best gating policy by mean_ep_return ---
+            mean_ret = roll_stats["mean_ep_return"]
+            if mean_ret > best_mean_ep_return:
+                best_mean_ep_return = mean_ret
+                best_ckpt_path = os.path.join(GATE_CKPT_DIR, "gate_best.pkl")
+                save_gate_checkpoint(best_ckpt_path, gate_params, opt_state, update, roll_stats)
+                log_dict["checkpoint/best_update"] = update
+                log_dict["checkpoint/best_mean_ep_return"] = mean_ret
+
+            # --- evaluation vs random gating policy ---
+            rng, eval_state_key, eval_rng = jax.random.split(rng, 3)
+            eval_init_keys = jax.random.split(eval_state_key, NUM_ENVS)
+            eval_state = jax.vmap(env_speed.init)(eval_init_keys)
+            eval_state, eval_rng_out, traj_random = rollout_core_random_jit(
+                eval_state, eval_rng, STEPS_PER_ENV
+            )
+            _batch_rand, rand_stats, _ep_traces_rand = build_batch_and_stats(traj_random)
+
+            for k, v in rand_stats.items():
+                log_dict[f"eval_random/{k}"] = v
+
+            # --- evaluation: always-8 baseline (both players use nsim=8) ---
+            rng, eval_state_key8, eval_rng8 = jax.random.split(rng, 3)
+            eval_init_keys8 = jax.random.split(eval_state_key8, NUM_ENVS)
+            eval_state8 = jax.vmap(env_speed.init)(eval_init_keys8)
+            eval_state8, eval_rng8_out, traj_always8 = rollout_core_always8_jit(
+                eval_state8, eval_rng8, STEPS_PER_ENV
+            )
+            _batch_always8, always8_stats, _ep_traces_always8 = build_batch_and_stats(traj_always8)
+
+            for k, v in always8_stats.items():
+                log_dict[f"eval_always8/{k}"] = v
+
+            # --- evaluation: GateNet (player 0) vs always-8 baseline (player 1) ---
+            rng, eval_state_key_vs8, eval_rng_vs8 = jax.random.split(rng, 3)
+            eval_init_keys_vs8 = jax.random.split(eval_state_key_vs8, NUM_ENVS)
+            eval_state_vs8 = jax.vmap(env_speed.init)(eval_init_keys_vs8)
+            eval_state_vs8, eval_rng_vs8_out, traj_gate_vs8 = rollout_core_gate_vs_8_jit(
+                eval_state_vs8, gate_params, eval_rng_vs8, STEPS_PER_ENV
+            )
+            _batch_gate_vs8, gate_vs8_stats, _ep_traces_gate_vs8 = build_batch_and_stats(traj_gate_vs8)
+
+            for k, v in gate_vs8_stats.items():
+                log_dict[f"eval_gate_vs_8/{k}"] = v
+
+        # Build wandb log dict for training rollout / losses
+        log_dict.update(
+            {
+                "train/loss": metrics_avg["loss"],
+                "train/policy_loss": metrics_avg["policy_loss"],
+                "train/value_loss": metrics_avg["value_loss"],
+                "train/entropy": metrics_avg["entropy"],
+                "train/approx_kl": metrics_avg["approx_kl"],
+                "rollout/mean_ep_return": roll_stats["mean_ep_return"],
+                "rollout/mean_ep_len": roll_stats["mean_ep_len"],
+                "rollout/avg_moves_per_game": roll_stats["avg_moves_per_game"],
+                "rollout/avg_moves_p0": roll_stats["avg_moves_p0"],
+                "rollout/avg_moves_p1": roll_stats["avg_moves_p1"],
+                "rollout/action_rate_8": roll_stats["action_rate_8"],
+                "rollout/action_rate_32": roll_stats["action_rate_32"],
+                "rollout/action_rate_8_p0": roll_stats["action_rate_8_p0"],
+                "rollout/action_rate_8_p1": roll_stats["action_rate_8_p1"],
+                "rollout/advantages_mean": roll_stats["advantages_mean"],
+                "rollout/advantages_std": roll_stats["advantages_std"],
+                "rollout/returns_mean": roll_stats["returns_mean"],
+                "rollout/returns_std": roll_stats["returns_std"],
+                # per-player W/L/D + avg final clock time
+                "rollout/win_rate_p0": roll_stats["win_rate_p0"],
+                "rollout/loss_rate_p0": roll_stats["loss_rate_p0"],
+                "rollout/draw_rate_p0": roll_stats["draw_rate_p0"],
+                "rollout/win_rate_p1": roll_stats["win_rate_p1"],
+                "rollout/loss_rate_p1": roll_stats["loss_rate_p1"],
+                "rollout/draw_rate_p1": roll_stats["draw_rate_p1"],
+                "rollout/avg_final_time_p0": roll_stats["avg_final_time_p0"],
+                "rollout/avg_final_time_p1": roll_stats["avg_final_time_p1"],
+            }
+        )
+
+        # 4) Sample game: number of moves + nsim-per-move plot
         if (update % TRAJ_LOG_INTERVAL == 0) and len(ep_traces) > 0:
-            sample_ep = ep_traces[0]
+            sample_ep = ep_traces[0]  # first episode from env 0
+            steps = sample_ep["steps"]
+            num_moves = len(steps)
+            log_dict["debug/sample_game_num_moves"] = num_moves
+
+            # Text dump as before
             lines = [
                 "Result P0={:.1f}, P1={:.1f}".format(
                     sample_ep["result_p0"], sample_ep["result_p1"]
                 )
             ]
-            for i, step in enumerate(sample_ep["steps"][:60]):
+            for i, step in enumerate(steps[:60]):
                 lines.append(
                     f"{i:02d} | P{step['player']} | "
                     f"nsim={8 if step['action'] == 0 else 32} | "
@@ -957,6 +1541,26 @@ def main():
             traj_text = "\n".join(lines)
             log_dict["debug/sample_game"] = traj_text
 
+            # W&B table + line plot: move index vs nsim used
+            table = wandb.Table(columns=["move", "nsim", "player", "my_time", "opp_time"])
+            for i, step in enumerate(steps):
+                nsim = 8 if step["action"] == 0 else 32
+                table.add_data(
+                    i,
+                    nsim,
+                    int(step["player"]),
+                    float(step["my_time"]),
+                    float(step["opp_time"]),
+                )
+            nsim_plot = wandb.plot.line(
+                table,
+                x="move",
+                y="nsim",
+                title="nsim choice per move (sample game)",
+            )
+            log_dict["debug/sample_game_nsim_per_move"] = nsim_plot
+
+        # 5) Log to wandb
         wandb.log(log_dict, step=update)
 
         if update % 10 == 0:
